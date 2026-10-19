@@ -1,21 +1,22 @@
-import { Screen } from "@/components/Screen";
-import Link from "next/link";
-import { Logo } from "@/components/Logo";
+import { Hero, LandingHeader } from "@/components/landing/Hero";
+import { Audiences, Facts, Faq, FinalCall, Footer, HowItWorks, MadeForHer, Safety } from "@/components/landing/Sections";
 
 export default function Landing() {
   return (
-    <Screen className="justify-center gap-8 settle">
-      <Logo size={56} />
-      <h1 className="text-4xl leading-tight">Care that knows you, with your people around you.</h1>
-      <p className="muted text-lg">A daily check-in made for you through pregnancy and the year after birth. Warning signs caught in time, and your partner, family and care team on the same page.</p>
-      <div className="flex flex-col gap-3">
-        <Link className="btn" href="/signup">
-          Get started
-        </Link>
-        <Link className="btn-quiet" href="/login">
-          Sign in
-        </Link>
-      </div>
-    </Screen>
+    // The landing page stays in day colours whatever the system theme; the app itself follows dark and night mode.
+    <div data-theme="light" className="flex min-h-dvh flex-col overflow-x-clip bg-paper text-ink">
+      <LandingHeader />
+      <main className="flex-1">
+        <Hero />
+        <Facts />
+        <HowItWorks />
+        <MadeForHer />
+        <Audiences />
+        <Safety />
+        <Faq />
+        <FinalCall />
+      </main>
+      <Footer />
+    </div>
   );
 }

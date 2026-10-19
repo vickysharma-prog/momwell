@@ -2,7 +2,8 @@
 
 /* Momwell brand (private/plan.md, 19 Oct): evergreen and honey on linen; night colours for dark and night mode.
    Red is kept for warnings only. */
-:root {
+:root,
+[data-theme="light"] {
   --paper: #f6f4ef;
   --paper-raised: #ffffff;
   --ink: #13201f;
@@ -38,6 +39,17 @@
 @theme inline {
   --font-sans: var(--font-figtree), system-ui, sans-serif;
   --font-display: var(--font-fraunces), Georgia, serif;
+  --color-paper: var(--paper);
+  --color-paper-raised: var(--paper-raised);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-line: var(--line);
+  --color-brand: var(--brand);
+  --color-brand-soft: var(--brand-soft);
+  --color-on-brand: var(--on-brand);
+  --color-honey: var(--honey);
+  --color-alarm: var(--alarm);
+  --color-alarm-soft: var(--alarm-soft);
 }
 
 body {
@@ -131,6 +143,16 @@ h2 {
 @keyframes mw-glow {
   50% {
     box-shadow: 0 0 0 10px color-mix(in srgb, var(--alarm) 18%, transparent);
+  }
+}
+
+/* Sections rise into place as they scroll into view (native scroll-driven animation; browsers without it show them
+   still). */
+@supports (animation-timeline: view()) {
+  .reveal {
+    animation: mw-rise-in linear both;
+    animation-timeline: view();
+    animation-range: entry 0% cover 22%;
   }
 }
 
