@@ -11,7 +11,8 @@ export const metadata: Metadata = {
   description: "A care agent for pregnancy and the year after birth that knows the mother and brings her people together.",
   applicationName: "Momwell",
   appleWebApp: { capable: true, title: "Momwell", statusBarStyle: "default" },
-  icons: { icon: "/icons/favicon-32.png", apple: "/icons/apple-180.png" },
+  // The version query makes browsers drop a favicon cached from the first (green) build.
+  icons: { icon: "/icons/favicon-32.png?v=lavender", apple: "/icons/apple-180.png?v=lavender" },
 };
 
 export const viewport: Viewport = {
