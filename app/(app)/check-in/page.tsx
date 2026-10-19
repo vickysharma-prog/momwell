@@ -1,5 +1,4 @@
-import { Screen } from "@/components/Screen";
-import Link from "next/link";
+import { AppPage } from "@/components/AppPage";
 import { redirect } from "next/navigation";
 import { CheckInForm } from "@/components/CheckInForm";
 import { saveDates } from "@/lib/checkin/actions";
@@ -15,12 +14,9 @@ export default async function CheckIn() {
   const stage = stageFrom(dates ?? {}, today);
 
   return (
-    <Screen className="settle">
-      <Link href="/home" className="muted underline">
-        Back
-      </Link>
+    <AppPage>
       <header>
-        <h1 className="text-3xl font-semibold">Today’s check-in</h1>
+        <h1 className="text-4xl sm:text-5xl">Today’s check-in</h1>
         <p className="muted mt-1 text-lg">
           {stage.kind === "pregnant" && dates?.due_date
             ? `${weeksPregnant(dates.due_date, today)} weeks pregnant`
@@ -31,8 +27,8 @@ export default async function CheckIn() {
       </header>
 
       {stage.kind === "unknown" && (
-        <form action={saveDates} className="card flex flex-col gap-3">
-          <p className="text-lg font-medium">So we show the right signs</p>
+        <form action={saveDates} className="card grid gap-4 md:grid-cols-[1fr_1fr_auto] md:items-end">
+          <p className="text-lg font-medium md:col-span-3">So we show the right signs</p>
           <label className="flex flex-col gap-1">
             <span className="muted">Your due date</span>
             <input type="date" name="due_date" className="field" />
@@ -46,6 +42,6 @@ export default async function CheckIn() {
       )}
 
       <CheckInForm signs={signsFor(stage).map(({ id, label, detail }) => ({ id, label, detail }))} />
-    </Screen>
+    </AppPage>
   );
 }

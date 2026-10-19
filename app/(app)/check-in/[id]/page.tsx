@@ -1,4 +1,4 @@
-import { Screen } from "@/components/Screen";
+import { AppPage } from "@/components/AppPage";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ResultView } from "@/components/ResultView";
@@ -13,7 +13,7 @@ export default async function CheckInResult({ params }: PageProps<"/check-in/[id
   const reasons = data.reasons as Reason[];
 
   return (
-    <Screen className="settle">
+    <AppPage className="max-w-2xl">
       <ResultView result={{ level: data.level, reasons, crisis: reasons.some((r) => r.id === "harm_thoughts"), noteUnread: Boolean(data.note) }} voice={data.mother_id === me.id} />
       {data.note && (
         <section className="card">
@@ -24,6 +24,6 @@ export default async function CheckInResult({ params }: PageProps<"/check-in/[id
       <Link href="/home" className="btn-quiet">
         Back home
       </Link>
-    </Screen>
+    </AppPage>
   );
 }

@@ -25,6 +25,7 @@ after(async () => {
 
 async function signIn(who: Person): Promise<Page> {
   const page = await (await browser.createBrowserContext()).newPage();
+  await page.bringToFront();
   await page.setViewport({ width: 390, height: 844 });
   // Motion off, as for people who ask their phone for less: clicks never land mid-animation.
   await page.emulateMediaFeatures([{ name: "prefers-reduced-motion", value: "reduce" }]);
@@ -34,18 +35,22 @@ async function signIn(who: Person): Promise<Page> {
   await Promise.all([page.waitForNavigation(), page.click("button.btn")]);
   return page;
 }
+// Polls on a timer: a page that isn't painting (headless, behind another tab) never runs animation-frame polling.
+const until = (page: Page, selector: string) => page.waitForFunction((q) => !!document.querySelector(q), { polling: 200 }, selector);
 const text = (page: Page) => page.$eval("main", (m) => (m as HTMLElement).innerText);
 // The result arrives by a client-side redirect after the server action, so wait for the result itself.
 async function done(page: Page) {
   await page.click("form:has(input[name=signs]) button.btn");
-  await page.waitForSelector("section[aria-live=assertive]");
+  await until(page, "section[aria-live=assertive]");
 }
 
 let m: Page;
 
 test("a headache and high blood pressure bring up the red screen", async () => {
   m = await signIn(mom);
-  await Promise.all([m.waitForNavigation(), m.click("a[href='/check-in']")]);
+  // Links move by client-side navigation: wait for the next screen itself.
+  await m.click("main a[href='/check-in']");
+  await until(m, "input[name=signs]");
   // No dates yet: every sign shows, including both bleeding signs.
   assert.equal(await m.$$eval("input[name=signs]", (x) => x.length), 15);
   await m.click("input[value=headache]");
@@ -70,7 +75,8 @@ test("her partner is told to check on her, without the detail", async () => {
 test("her doctor sees what she reported and marks it seen; she sees that", async () => {
   const d = await signIn(doctor);
   assert.match(await text(d), /Maya needs you to check on her now/);
-  await Promise.all([d.waitForNavigation(), d.click("a[href^='/check-in/']")]);
+  await d.click("main a[href^='/check-in/']");
+  await until(d, "section[aria-live=assertive]");
   assert.match(await text(d), /150\/95/);
   await d.goBack();
   await Promise.all([d.waitForResponse((r) => r.request().method() === "POST"), d.click("section[aria-label=Alerts] form button")]);

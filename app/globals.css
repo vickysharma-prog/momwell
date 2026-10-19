@@ -52,6 +52,14 @@
   --color-alarm-soft: var(--alarm-soft);
 }
 
+/* On a phone the app has a sticky top bar and a tab bar: anything scrolled to or focused stays clear of both. */
+@media (max-width: 767px) {
+  html {
+    scroll-padding-top: 5rem;
+    scroll-padding-bottom: 7rem;
+  }
+}
+
 body {
   background: var(--paper);
   color: var(--ink);

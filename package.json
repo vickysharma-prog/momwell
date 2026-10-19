@@ -9,7 +9,7 @@
     "start": "next start",
     "lint": "eslint",
     "migrate": "node --env-file=.env.local scripts/migrate.ts",
-    "test": "node --test \"lib/**/*.test.ts\"",
+    "test": "node --test \"lib/**/*.test.ts\" \"components/**/*.test.ts\"",
     "test:integration": "node --env-file=.env.local --test \"lib/**/*.integration.ts\"",
     "e2e": "node --env-file=.env.local --test --test-concurrency=1 \"e2e/*.e2e.ts\""
   },

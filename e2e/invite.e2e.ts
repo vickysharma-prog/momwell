@@ -49,6 +49,7 @@ test("a mother invites her partner and he joins her circle", async () => {
   assert.equal(new URL(m.url()).pathname, "/home");
   assert.match(await text(m), /Hi, Maya/);
 
+  await m.goto(`${base}/people`);
   await m.type("input[name=relation]", "husband");
   await m.click("input[name=partner]");
   await Promise.all([m.waitForResponse((r) => r.request().method() === "POST"), m.click("form:has(input[name=relation]) button.btn")]);
@@ -62,6 +63,8 @@ test("a mother invites her partner and he joins her circle", async () => {
   assert.equal(await p.$$eval("input[name=role]", (r) => r.map((x) => (x as HTMLInputElement).value).join()), "circle");
   await signUp(p, "Sam", partner);
   assert.equal(new URL(p.url()).pathname, "/home");
+  assert.match(await text(p), /Maya/);
+  await p.goto(`${base}/people`);
   assert.match(await text(p), /Maya\s+partner/);
   assert.match(await text(p), /Urgent alerts/);
 
@@ -97,6 +100,7 @@ test("a clinician's invite shows the mother what they will see before she accept
   const doc = await fresh();
   await doc.goto(`${base}/signup?role=care_team`);
   await signUp(doc, "Dr Lee", `momwell.e2e.doc.${run}@example.com`);
+  await doc.goto(`${base}/people`);
   await doc.type("input[name=relation]", "OB-GYN");
   await Promise.all([doc.waitForResponse((r) => r.request().method() === "POST"), doc.click("form:has(input[name=relation]) button.btn")]);
   await doc.waitForFunction(() => document.body.innerText.includes("OB-GYN · waiting"));

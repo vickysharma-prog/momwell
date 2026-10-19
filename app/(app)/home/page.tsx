@@ -1,0 +1,144 @@
+import Link from "next/link";
+import { AlertList, type Alert } from "@/components/AlertList";
+import { AppPage } from "@/components/AppPage";
+import type { Scope } from "@/lib/people/access";
+import { requireMe } from "@/lib/people/me";
+import { stageFrom, weeksPregnant } from "@/lib/safety/stage";
+
+type Linked = { mother_id: string; person_id: string; kind: string; relation: string; partner: boolean; sees: Scope[]; other: { name: string } };
+type CheckIn = { id: string; created_at: string; level: "urgent" | "call_doctor" | "check" | "none" };
+
+const LEVEL: Record<CheckIn["level"], { label: string; dot: string }> = {
+  urgent: { label: "Warning sign", dot: "bg-alarm" },
+  call_doctor: { label: "Call your doctor", dot: "bg-honey" },
+  check: { label: "Reading to check", dot: "bg-line" },
+  none: { label: "All clear", dot: "bg-brand" },
+};
+
+const day = (iso: string) => new Date(iso).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+
+// Today: for her, the check-in first, then her alerts and people; for her circle and care team, the alerts first.
+export default async function Today() {
+  const { db, me } = await requireMe();
+  const mine = me.role === "mother";
+  const [{ data: links }, { data: alerts }, { data: checkins }, { data: dates }] = await Promise.all([
+    mine
+      ? db.from("links").select("*, other:profiles!links_person_id_fkey(name)").eq("mother_id", me.id).order("created_at")
+      : db.from("links").select("*, other:profiles!links_mother_id_fkey(name)").eq("person_id", me.id).order("created_at"),
+    // Row-level security returns only alerts for moms who share alerts with this person (or her own).
+    db.from("alerts").select("id, mother_id, checkin_id, level, created_at, seen_at, mother:profiles!alerts_mother_id_fkey(name), seer:profiles!alerts_seen_by_fkey(name)").order("seen_at", { ascending: false, nullsFirst: true }).order("created_at", { ascending: false }).limit(20),
+    mine ? db.from("checkins").select("id, created_at, level").eq("mother_id", me.id).order("created_at", { ascending: false }).limit(6) : Promise.resolve({ data: [] }),
+    mine ? db.from("mothers").select("due_date, birth_date").eq("id", me.id).maybeSingle() : Promise.resolve({ data: null }),
+  ]);
+  const people = (links ?? []) as Linked[];
+  const recent = (checkins ?? []) as CheckIn[];
+  const today = new Date();
+  const stage = stageFrom(dates ?? {}, today);
+  const doneToday = recent[0] && new Date(recent[0].created_at).toDateString() === today.toDateString();
+  const canOpen = people.filter((p) => p.sees.includes("checkins")).map((p) => p.mother_id);
+
+  return (
+    <AppPage>
+      <header className="flex flex-col gap-2">
+        <h1 className="text-4xl sm:text-5xl">Hi, {me.name}</h1>
+        <p className="text-lg text-ink-soft">
+          {mine
+            ? stage.kind === "pregnant" && dates?.due_date
+              ? `${weeksPregnant(dates.due_date, today)} weeks pregnant`
+              : stage.kind === "after_birth"
+                ? `${stage.days} days since your baby was born`
+                : "Add your due date in today’s check-in so we show the right signs."
+            : me.role === "care_team"
+              ? `${people.length} ${people.length === 1 ? "patient" : "patients"}`
+              : "Here’s how you can help today."}
+        </p>
+      </header>
+
+      {mine ? (
+        <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+          <div className="flex flex-col gap-6">
+            <section className="relative overflow-hidden rounded-[32px] bg-brand p-7 text-on-brand sm:p-9">
+              <div aria-hidden="true" className="absolute -top-16 -right-16 size-56 rounded-full bg-white/8" />
+              <p className="relative text-sm font-semibold tracking-widest uppercase opacity-80">Today’s check-in</p>
+              <p className="relative mt-3 font-display text-3xl leading-tight sm:text-4xl">{doneToday ? "You’ve checked in today. Thank you." : "How are you feeling today?"}</p>
+              <p className="relative mt-2 opacity-85">{doneToday ? `${LEVEL[recent[0].level].label} · ${day(recent[0].created_at)}` : "Thirty seconds. Tap what’s true."}</p>
+              <Link href="/check-in" className="relative mt-6 inline-flex h-14 items-center rounded-full bg-paper-raised px-8 text-lg font-semibold text-brand transition active:scale-[0.98]">
+                {doneToday ? "Check in again" : "Check in today"}
+              </Link>
+            </section>
+
+            <section className="flex flex-col gap-3" aria-label="Recent check-ins">
+              <h2 className="text-2xl">Recent check-ins</h2>
+              {recent.length === 0 ? (
+                <p className="rounded-3xl border border-dashed border-line p-6 text-ink-soft">Your check-ins will show here.</p>
+              ) : (
+                <ul className="flex flex-col divide-y divide-line rounded-3xl border border-line bg-paper-raised">
+                  {recent.map((c) => (
+                    <li key={c.id}>
+                      <Link href={`/check-in/${c.id}`} className="flex items-center gap-3 px-5 py-4 transition-colors hover:bg-paper">
+                        <span className={`size-2.5 rounded-full ${LEVEL[c.level].dot}`} aria-hidden="true" />
+                        <span className="font-medium">{LEVEL[c.level].label}</span>
+                        <span className="ml-auto text-sm text-ink-soft">{day(c.created_at)}</span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          </div>
+
+          <div className="flex flex-col gap-6">
+            {(alerts ?? []).length > 0 && <AlertList alerts={alerts as unknown as Alert[]} role={me.role} canOpen={canOpen} />}
+            <section className="card flex flex-col gap-4" aria-label="Your people">
+              <div className="flex items-center justify-between">
+                <h2 className="text-2xl">Your people</h2>
+                <Link href="/people" className="text-sm font-medium text-brand underline underline-offset-4">
+                  {people.length ? "Manage" : "Invite"}
+                </Link>
+              </div>
+              {people.length === 0 ? (
+                <p className="text-ink-soft">Invite your partner, family and care team so they can help.</p>
+              ) : (
+                <ul className="flex flex-col gap-3">
+                  {people.map((p) => (
+                    <li key={p.person_id} className="flex items-center gap-3">
+                      <span className="flex size-10 items-center justify-center rounded-full bg-brand-soft font-semibold text-brand">{p.other.name.slice(0, 1).toUpperCase()}</span>
+                      <span className="font-medium">{p.other.name}</span>
+                      <span className="text-sm text-ink-soft">{p.partner ? "partner" : p.relation || (p.kind === "care_team" ? "care team" : "circle")}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          </div>
+        </div>
+      ) : (
+        <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
+          {(alerts ?? []).length > 0 ? (
+            <AlertList alerts={alerts as unknown as Alert[]} role={me.role} canOpen={canOpen} />
+          ) : (
+            <section className="rounded-[32px] bg-brand-soft p-8">
+              <h2 className="text-2xl">No alerts</h2>
+              <p className="mt-2 text-ink-soft">{people.length ? "Everyone is all clear. We’ll tell you the moment someone needs you." : "Accept an invite link from a mom to get started."}</p>
+            </section>
+          )}
+          <section className="card flex flex-col gap-4" aria-label={me.role === "care_team" ? "Patients" : "Moms"}>
+            <h2 className="text-2xl">{me.role === "care_team" ? "Patients" : "Moms you’re helping"}</h2>
+            {people.length === 0 ? (
+              <p className="text-ink-soft">Nobody yet.</p>
+            ) : (
+              <ul className="flex flex-col gap-3">
+                {people.map((p) => (
+                  <li key={p.mother_id} className="flex items-center gap-3">
+                    <span className="flex size-10 items-center justify-center rounded-full bg-honey font-semibold text-[#13201f]">{p.other.name.slice(0, 1).toUpperCase()}</span>
+                    <span className="font-medium">{p.other.name}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        </div>
+      )}
+    </AppPage>
+  );
+}
