@@ -35,6 +35,12 @@ test("a plain no is not a report", () => {
   assert.deepEqual(signsInWords("I don't have a headache anymore"), []);
 });
 
+test("blood pressure, blood sugar or a blood test is not bleeding", () => {
+  assert.ok(!signsInWords("my blood pressure is 148 over 94").includes("bleeding_pregnant"));
+  assert.ok(!signsInWords("my blood sugar was fine and the blood test came back").includes("bleeding_pregnant"));
+  assert.ok(signsInWords("there was blood on my pad").includes("bleeding_pregnant"));
+});
+
 test("an ordinary message has nothing to flag", () => {
   assert.deepEqual(signsInWords("can you find me a nice show for tonight?"), []);
   assert.deepEqual(signsInWords("what should I eat for dinner"), []);

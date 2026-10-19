@@ -18,7 +18,7 @@ const WORDS: [SignId, RegExp][] = [
   ["vomiting", w("throwing up|vomit(?:ing)?|can'?t keep (?:anything|water|fluids|food) down|v[oó]mito")],
   ["belly_pain", w("(?:belly|stomach|abdominal|tummy) (?:pain|hurts|cramps?)|severe cramp|dolor (?:de|en el) (?:est[oó]mago|vientre|abdomen)")],
   ["baby_movement", w("(?:baby|bebé|bebe)(?:'?s)? (?:isn'?t|is not|hasn'?t been|stopped|not) mov|(?:not|less) (?:feeling|felt) (?:the )?(?:baby|kicks)|no (?:siento|se mueve)")],
-  ["bleeding_pregnant", w("bleeding|blood|spotting|leaking fluid|water broke|sangrado|sangre")],
+  ["bleeding_pregnant", w("bleeding|blood(?! ?(?:pressure|sugar|test|work|type|draw))|spotting|leaking fluid|water broke|sangrado|sangre(?! ?(?:presi[oó]n|az[uú]car))")],
   ["leg_arm", w("(?:leg|calf|arm) (?:is )?(?:swollen|red|hot|hurts|pain)|(?:swollen|painful|red) (?:leg|calf|arm)")],
   ["tiredness", w("exhausted|so tired|can'?t get up|too tired to (?:care|look after)")],
 ];

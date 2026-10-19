@@ -45,7 +45,7 @@ export function ResultView({ result, voice = true }: { result: Pick<Result, "lev
       )}
       {result.level === "none" && <p className="muted text-lg">{result.noteUnread ? NOTE_UNREAD : ACTION.none}</p>}
       {result.level === "check" && <p className="muted text-lg">{ACTION.check}</p>}
-      {(result.level === "check" || result.noteUnread) && (
+      {(result.level === "check" || (result.level === "none" && result.noteUnread)) && (
         <Link className="btn-quiet" href="/check-in">
           Back to the list
         </Link>

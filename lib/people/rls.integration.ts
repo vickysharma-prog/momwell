@@ -90,3 +90,14 @@ test("an invite link previews who sent it, even signed out, and nothing for a ma
   const { data: none } = await anon().rpc("invite_preview", { t: crypto.randomUUID() });
   assert.deepEqual(none, []);
 });
+
+test("nobody puts themselves into a demo family from the browser", async () => {
+  const sneaky = anon();
+  const email = `momwell.rls.sneaky.${crypto.randomUUID().slice(0, 8)}@example.com`;
+  const password = crypto.randomUUID();
+  const { data } = await admin.auth.admin.createUser({ email, password, email_confirm: true });
+  await sneaky.auth.signInWithPassword({ email, password });
+  const { error } = await sneaky.from("profiles").insert({ id: data.user!.id, role: "mother", name: "x", demo_family: crypto.randomUUID() });
+  assert.ok(error);
+  await admin.auth.admin.deleteUser(data.user!.id);
+});

@@ -49,7 +49,7 @@ function Glyph({ icon }: { icon: Icon }) {
 }
 
 // The signed-in app: a sidebar on a desktop, a top bar and a tab bar on a phone, the page in between.
-export function AppShell({ role, name, children }: { role: Role; name: string; children: React.ReactNode }) {
+export function AppShell({ role, name, banner, children }: { role: Role; name: string; banner?: React.ReactNode; children: React.ReactNode }) {
   const items = navFor(role);
   const active = activeHref(items, usePathname());
 
@@ -91,7 +91,10 @@ export function AppShell({ role, name, children }: { role: Role; name: string; c
         </form>
       </header>
 
-      <div className="pb-28 md:pb-0">{children}</div>
+      <div className="min-w-0 pb-28 md:pb-0">
+        {banner}
+        {children}
+      </div>
 
       <nav aria-label="Main" className="fixed inset-x-0 bottom-0 z-30 flex border-t border-line bg-paper-raised/95 px-2 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] backdrop-blur-md md:hidden">
         {items.map((i) => (
