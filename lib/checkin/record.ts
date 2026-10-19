@@ -5,13 +5,14 @@ import { supabaseAdmin } from "../supabase/admin.ts";
 
 export type Recorded = { result: Result; id: string | null; problem?: "not_saved" | "not_alerted" };
 
-export async function recordCheckIn(motherId: string, input: CheckIn & { note?: string }): Promise<Recorded> {
+export async function recordCheckIn(motherId: string, input: CheckIn & { note?: string }, source: "tap" | "talk" = "tap"): Promise<Recorded> {
   const result = evaluate(input);
   const admin = supabaseAdmin();
   const { data, error } = await admin
     .from("checkins")
     .insert({
       mother_id: motherId,
+      source,
       signs: input.signs,
       note: input.note ?? "",
       systolic: input.bp?.systolic,

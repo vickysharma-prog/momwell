@@ -63,6 +63,10 @@ test("a headache and high blood pressure bring up the red screen", async () => {
   assert.match(shown, /150\/95/);
   assert.ok(await m.$("a[href='tel:911']"));
   assert.doesNotMatch(shown, /988/);
+  // The audit trail is there for anyone to open: the rules decided, with the engine version, not a model.
+  await until(m, "details summary");
+  await m.click("details summary");
+  assert.match(await text(m), /The rules decided[\s\S]*No AI model made this decision/);
 });
 
 test("her partner is told to check on her, without the detail", async () => {

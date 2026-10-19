@@ -23,7 +23,7 @@ export default defineTool({
     const me = await mother(ctx);
     const bp = input.systolic !== undefined && input.diastolic !== undefined ? { systolic: input.systolic, diastolic: input.diastolic } : undefined;
     const temp = input.temperature !== undefined ? { value: input.temperature, unit: input.temperatureUnit ?? ("F" as const) } : undefined;
-    const saved = await recordCheckIn(me.id, { signs: input.signs, bp, temp, note: input.words });
+    const saved = await recordCheckIn(me.id, { signs: input.signs, bp, temp, note: input.words }, "talk");
     const { level, reasons, crisis } = saved.result;
     return {
       level,

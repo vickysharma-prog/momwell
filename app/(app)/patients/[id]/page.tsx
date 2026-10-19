@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { AppPage } from "@/components/AppPage";
 import { BpChart } from "@/components/care/BpChart";
+import { HowDecided } from "@/components/HowDecided";
 import { PrintButton } from "@/components/care/PrintButton";
 import { markAllSeen } from "@/lib/care/actions";
 import { stageLabel } from "@/lib/care/patients";
@@ -10,7 +11,7 @@ import { aboutHer, LEVEL_FOR_TEAM } from "@/lib/care/voice";
 import { requireMe } from "@/lib/people/me";
 import type { Reason } from "@/lib/safety/engine";
 
-type CheckIn = { id: string; created_at: string; level: keyof typeof LEVEL_FOR_TEAM; systolic: number | null; diastolic: number | null; temp_value: number | null; temp_unit: string | null; note: string; reasons: Reason[] };
+type CheckIn = { id: string; source: "tap" | "talk"; engine_version: string; created_at: string; level: keyof typeof LEVEL_FOR_TEAM; systolic: number | null; diastolic: number | null; temp_value: number | null; temp_unit: string | null; note: string; reasons: Reason[] };
 
 const DOT: Record<string, string> = { urgent: "bg-alarm", call_doctor: "bg-honey", check: "bg-line", none: "bg-brand" };
 const when = (iso: string) => new Date(iso).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
@@ -25,7 +26,7 @@ export default async function PatientPage({ params }: PageProps<"/patients/[id]"
   const [{ data: profile }, { data: dates }, { data: checkins }, { data: alerts }] = await Promise.all([
     db.from("profiles").select("name").eq("id", id).maybeSingle(),
     db.from("mothers").select("due_date, birth_date").eq("id", id).maybeSingle(),
-    db.from("checkins").select("id, created_at, level, systolic, diastolic, temp_value, temp_unit, note, reasons").eq("mother_id", id).order("created_at", { ascending: false }).limit(60),
+    db.from("checkins").select("id, created_at, level, systolic, diastolic, temp_value, temp_unit, note, reasons, source, engine_version").eq("mother_id", id).order("created_at", { ascending: false }).limit(60),
     db.from("alerts").select("id, level, seen_at").eq("mother_id", id).is("seen_at", null),
   ]);
   if (!profile) notFound();
@@ -114,7 +115,7 @@ export default async function PatientPage({ params }: PageProps<"/patients/[id]"
         <h2 className="text-2xl">Check-ins</h2>
         {list.length === 0 && <p className="rounded-2xl border border-dashed border-line p-6 text-ink-soft">No check-ins shared yet.</p>}
         <ol className="flex flex-col divide-y divide-line rounded-3xl border border-line bg-paper-raised">
-          {list.map((c) => (
+          {list.map((c, i) => (
             <li key={c.id} className="flex flex-col gap-2 px-6 py-5">
               <div className="flex flex-wrap items-center gap-3">
                 <span className={`size-2.5 rounded-full ${DOT[c.level]}`} aria-hidden="true" />
@@ -130,6 +131,8 @@ export default async function PatientPage({ params }: PageProps<"/patients/[id]"
                 </p>
               ))}
               {c.note && <p className="rounded-xl bg-paper px-4 py-2 text-ink">“{c.note}”</p>}
+              {/* The audit trail for the latest warnings; older ones stay one tap away on their own page. */}
+              {i < 5 && (c.level === "urgent" || c.level === "call_doctor") && <HowDecided db={db} checkin={{ ...c, mother_id: id }} />}
             </li>
           ))}
         </ol>
