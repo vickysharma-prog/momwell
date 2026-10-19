@@ -1,0 +1,31 @@
+@import "tailwindcss";
+
+/* Momwell: warm and soft. Night mode follows the system for now; 10pm to 6am comes with the mother's app. */
+:root {
+  --paper: #fdf8f4;
+  --paper-raised: #ffffff;
+  --ink: #3a2a2a;
+  --ink-soft: #7a6662;
+  --line: #f0e2da;
+  --accent: #d9776b;
+  --calm: #6f9a8d;
+  --alarm: #c0392b;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #1d1716;
+    --paper-raised: #2a2120;
+    --ink: #f4e9e4;
+    --ink-soft: #b9a59f;
+    --line: #3a2e2c;
+    --accent: #f0998d;
+    --calm: #8fbcae;
+    --alarm: #ff6b5b;
+  }
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+}
