@@ -14,7 +14,7 @@ export default async function CheckInResult({ params }: PageProps<"/check-in/[id
 
   return (
     <Screen className="settle">
-      <ResultView result={{ level: data.level, reasons, crisis: reasons.some((r) => r.id === "harm_thoughts"), noteUnread: Boolean(data.note) }} />
+      <ResultView result={{ level: data.level, reasons, crisis: reasons.some((r) => r.id === "harm_thoughts"), noteUnread: Boolean(data.note) }} voice={data.mother_id === me.id} />
       {data.note && (
         <section className="card">
           <p className="muted mb-1 text-sm">{data.mother_id === me.id ? "You wrote" : "She wrote"}</p>
