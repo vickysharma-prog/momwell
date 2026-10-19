@@ -3,8 +3,7 @@ import { Audiences, Facts, Faq, FinalCall, Footer, HowItWorks, MadeForHer, Safet
 
 export default function Landing() {
   return (
-    // The landing page stays in day colours whatever the system theme; the app itself follows dark and night mode.
-    <div data-theme="light" className="flex min-h-dvh flex-col overflow-x-clip bg-paper text-ink">
+    <div className="flex min-h-dvh flex-col overflow-x-clip bg-paper text-ink">
       <LandingHeader />
       <main className="flex-1">
         <Hero />
