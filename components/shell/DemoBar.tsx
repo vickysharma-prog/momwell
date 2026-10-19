@@ -12,14 +12,14 @@ const WHO: { role: Role; name: string; label: string }[] = [
 const NEXT: Record<Role, { text: string; href: string; cta: string }> = {
   mother: { text: "Tell Momwell how you feel, or see what Qloo picked for you.", href: "/talk", cta: "Talk to Momwell" },
   circle: { text: "Sam got this morning’s alert, without the private detail.", href: "/home", cta: "See Sam’s alert" },
-  care_team: { text: "Dr Lee sees what Maya reported and marks it seen; Maya sees that.", href: "/home", cta: "Open the alert" },
+  care_team: { text: "Dr Lee's patients, the one who needs a look first at the top.", href: "/home", cta: "Open the queue" },
 };
 
 // Shown only inside a demo family: who you're seeing Momwell as, a one-click switch, and the next thing to try.
 export function DemoBar({ role }: { role: Role }) {
   const next = NEXT[role];
   return (
-    <div className="border-b border-line bg-brand-soft">
+    <div className="border-b border-line bg-brand-soft print:hidden">
       <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-x-4 gap-y-2 px-5 py-3 md:px-10">
         <span className="rounded-full bg-paper-raised px-3 py-1 text-xs font-semibold tracking-wider text-brand uppercase">Demo</span>
         <span className="text-sm">Viewing as</span>

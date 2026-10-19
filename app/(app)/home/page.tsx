@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AlertList, type Alert } from "@/components/AlertList";
 import { AppPage } from "@/components/AppPage";
+import { CareHome } from "@/components/care/CareHome";
 import type { Scope } from "@/lib/people/access";
 import { requireMe } from "@/lib/people/me";
 import { stageFrom, weeksPregnant } from "@/lib/safety/stage";
@@ -17,9 +18,11 @@ const LEVEL: Record<CheckIn["level"], { label: string; dot: string }> = {
 
 const day = (iso: string) => new Date(iso).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
 
-// Today: for her, the check-in first, then her alerts and people; for her circle and care team, the alerts first.
+// Today: for her, the check-in first, then her alerts and people; for her circle, the alerts first; for her care
+// team, the triage queue.
 export default async function Today() {
   const { db, me } = await requireMe();
+  if (me.role === "care_team") return <CareHome db={db} me={me} />;
   const mine = me.role === "mother";
   const [{ data: links }, { data: alerts }, { data: checkins }, { data: dates }] = await Promise.all([
     mine
@@ -48,9 +51,7 @@ export default async function Today() {
               : stage.kind === "after_birth"
                 ? `${stage.days} days since your baby was born`
                 : "Add your due date in today’s check-in so we show the right signs."
-            : me.role === "care_team"
-              ? `${people.length} ${people.length === 1 ? "patient" : "patients"}`
-              : "Here’s how you can help today."}
+            : "Here’s how you can help today."}
         </p>
       </header>
 
@@ -122,8 +123,8 @@ export default async function Today() {
               <p className="mt-2 text-ink-soft">{people.length ? "Everyone is all clear. We’ll tell you the moment someone needs you." : "Accept an invite link from a mom to get started."}</p>
             </section>
           )}
-          <section className="card flex flex-col gap-4" aria-label={me.role === "care_team" ? "Patients" : "Moms"}>
-            <h2 className="text-2xl">{me.role === "care_team" ? "Patients" : "Moms you’re helping"}</h2>
+          <section className="card flex flex-col gap-4" aria-label="Moms">
+            <h2 className="text-2xl">Moms you’re helping</h2>
             {people.length === 0 ? (
               <p className="text-ink-soft">Nobody yet.</p>
             ) : (

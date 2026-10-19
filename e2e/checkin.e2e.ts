@@ -72,14 +72,17 @@ test("her partner is told to check on her, without the detail", async () => {
   assert.doesNotMatch(shown, /headache|150\/95|What she reported/i);
 });
 
-test("her doctor sees what she reported and marks it seen; she sees that", async () => {
+test("her doctor finds her at the top of the queue, reads it about her, and marks it seen; she sees that", async () => {
   const d = await signIn(doctor);
-  assert.match(await text(d), /Maya needs you to check on her now/);
-  await d.click("main a[href^='/check-in/']");
-  await until(d, "section[aria-live=assertive]");
-  assert.match(await text(d), /150\/95/);
-  await d.goBack();
-  await Promise.all([d.waitForResponse((r) => r.request().method() === "POST"), d.click("section[aria-label=Alerts] form button")]);
+  const queue = await text(d);
+  assert.match(queue, /Maya[\s\S]*Urgent, not seen/);
+  await d.click("main a[href^='/patients/']");
+  await until(d, "section[aria-label^='Visit summary']");
+  const page = await text(d);
+  assert.match(page, /She reported: headache that won't go away/i);
+  assert.match(page, /Her blood pressure was 150\/95/);
+  assert.doesNotMatch(page, /You told us/);
+  await Promise.all([d.waitForResponse((r) => r.request().method() === "POST"), d.click("main form button.btn")]);
   await m.goto(`${base}/home`);
   assert.match(await text(m), /Seen by Dr Lee/);
 });
@@ -96,9 +99,12 @@ test("with a birth date, only the signs for after birth show", async () => {
   await m.goto(`${base}/check-in`);
   const born = new Date(Date.now() - 10 * 86_400_000).toISOString().slice(0, 10);
   await m.$eval("input[name=birth_date]", (el, v) => ((el as HTMLInputElement).value = v), born);
-  await Promise.all([m.waitForResponse((r) => r.request().method() === "POST"), m.click("form:has(input[name=birth_date]) button")]);
-  await m.reload();
-  assert.match(await text(m), /10 days since your baby was born/);
+  // Bring Save to the middle first: on a phone, the Done bar is fixed over the bottom of the screen.
+  await m.$eval("form:has(input[name=birth_date]) button", (b) => b.scrollIntoView({ block: "center" }));
+  await m.click("form:has(input[name=birth_date]) button");
+  // The save re-renders the page with her stage. 10 or 11 days: the server counts days in its own time zone and this
+  // date was made in UTC (state.md: store her time zone).
+  await m.waitForFunction(() => /1[01] days since your baby was born/.test(document.body.innerText), { polling: 300, timeout: 60_000 });
   const ids = await m.$$eval("input[name=signs]", (x) => x.map((i) => (i as HTMLInputElement).value));
   assert.ok(ids.includes("bleeding_after") && !ids.includes("baby_movement"));
 });

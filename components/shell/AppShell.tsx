@@ -54,8 +54,8 @@ export function AppShell({ role, name, banner, children }: { role: Role; name: s
   const active = activeHref(items, usePathname());
 
   return (
-    <div className="min-h-dvh md:grid md:grid-cols-[260px_minmax(0,1fr)]">
-      <aside className="sticky top-0 hidden h-dvh flex-col gap-8 border-r border-line bg-paper-raised px-5 py-7 md:flex">
+    <div className="min-h-dvh md:grid md:grid-cols-[260px_minmax(0,1fr)] print:block">
+      <aside className="sticky top-0 hidden h-dvh flex-col print:!hidden gap-8 border-r border-line bg-paper-raised px-5 py-7 md:flex">
         <Link href="/home" aria-label="Momwell, today">
           <Logo size={30} />
         </Link>
@@ -82,7 +82,7 @@ export function AppShell({ role, name, banner, children }: { role: Role; name: s
         </div>
       </aside>
 
-      <header className="sticky top-0 z-30 flex items-center justify-between border-b border-line bg-paper/85 px-5 py-3 backdrop-blur-md md:hidden">
+      <header className="sticky top-0 z-30 flex items-center justify-between print:hidden border-b border-line bg-paper/85 px-5 py-3 backdrop-blur-md md:hidden">
         <Link href="/home" aria-label="Momwell, today">
           <Logo size={26} />
         </Link>
@@ -96,7 +96,7 @@ export function AppShell({ role, name, banner, children }: { role: Role; name: s
         {children}
       </div>
 
-      <nav aria-label="Main" className="fixed inset-x-0 bottom-0 z-30 flex border-t border-line bg-paper-raised/95 px-2 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] backdrop-blur-md md:hidden">
+      <nav aria-label="Main" className="fixed inset-x-0 bottom-0 z-30 flex print:hidden border-t border-line bg-paper-raised/95 px-2 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] backdrop-blur-md md:hidden">
         {items.map((i) => (
           <Link key={i.href} href={i.href} aria-current={active === i.href ? "page" : undefined} className={`relative flex flex-1 flex-col items-center gap-1 rounded-2xl py-2 text-xs font-medium transition-colors ${active === i.href ? "text-brand" : "text-ink-soft"}`}>
             {active === i.href && <motion.span layoutId="tab-active" className="absolute inset-x-3 inset-y-0 rounded-2xl bg-brand-soft" transition={{ type: "spring", stiffness: 420, damping: 34 }} />}
