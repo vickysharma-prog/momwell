@@ -1,35 +1,56 @@
 @import "tailwindcss";
 
-/* Momwell: warm and soft. Night mode follows the system for now; 10pm to 6am comes with the mother's app. */
+/* Momwell brand (private/plan.md, 19 Oct): evergreen and honey on linen; night colours for dark and night mode.
+   Red is kept for warnings only. */
 :root {
-  --paper: #fdf8f4;
+  --paper: #f6f4ef;
   --paper-raised: #ffffff;
-  --ink: #3a2a2a;
-  --ink-soft: #7a6662;
-  --line: #f0e2da;
-  --accent: #d9776b;
-  --calm: #6f9a8d;
-  --alarm: #c0392b;
-  --alarm-soft: #fbe3df;
+  --ink: #13201f;
+  --ink-soft: #4d5e5c;
+  --line: #e4e0d6;
+  --brand: #0e4a47;
+  --brand-soft: #dcebe5;
+  --on-brand: #ffffff;
+  --honey: #f2b84b;
+  --accent: var(--brand);
+  --alarm: #b3261e;
+  --alarm-ink: #5c1a12;
+  --alarm-soft: #fbe4e0;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --paper: #1d1716;
-    --paper-raised: #2a2120;
-    --ink: #f4e9e4;
-    --ink-soft: #b9a59f;
-    --line: #3a2e2c;
-    --accent: #f0998d;
-    --calm: #8fbcae;
-    --alarm: #ff6b5b;
-    --alarm-soft: #4a2420;
+    --paper: #0c1f1e;
+    --paper-raised: #16302e;
+    --ink: #e7f0ec;
+    --ink-soft: #a9bdb8;
+    --line: #24403d;
+    --brand: #a8d5cb;
+    --brand-soft: #1d3b38;
+    --on-brand: #0c1f1e;
+    --honey: #e9c27a;
+    --alarm: #ff8a80;
+    --alarm-ink: #ffdad6;
+    --alarm-soft: #4a1c18;
   }
+}
+
+@theme inline {
+  --font-sans: var(--font-figtree), system-ui, sans-serif;
+  --font-display: var(--font-fraunces), Georgia, serif;
 }
 
 body {
   background: var(--paper);
   color: var(--ink);
+  font-family: var(--font-sans);
+}
+
+h1,
+h2 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  letter-spacing: -0.01em;
 }
 
 /* Phone first: big type, big targets for one hand, soft rounded surfaces. */
@@ -45,12 +66,20 @@ body {
     border-color: var(--line);
   }
   .field:focus {
-    border-color: var(--accent);
+    border-color: var(--brand);
+    outline: 2px solid var(--brand-soft);
   }
   .btn {
     @apply inline-flex min-h-14 w-full items-center justify-center rounded-full px-6 text-lg font-semibold transition disabled:opacity-60;
-    background: var(--accent);
-    color: #fff;
+    background: var(--brand);
+    color: var(--on-brand);
+  }
+  .font-signature {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-weight: 500;
+    font-variation-settings: "SOFT" 100, "opsz" 144;
+    letter-spacing: -0.02em;
   }
   .btn-quiet {
     @apply inline-flex min-h-12 items-center justify-center rounded-full border px-5 font-medium;

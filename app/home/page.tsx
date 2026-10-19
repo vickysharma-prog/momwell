@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { headers } from "next/headers";
+import { Logo } from "@/components/Logo";
 import { CopyLink } from "@/components/CopyLink";
 import { signOut } from "@/lib/auth/actions";
 import { SCOPE_LABEL, SCOPES, type Scope } from "@/lib/people/access";
@@ -28,11 +29,12 @@ export default async function Home() {
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-6 px-5 py-8">
       <header className="flex items-center justify-between">
-        <h1 className="text-3xl font-semibold">Hi, {me.name}</h1>
+        <Logo size={28} />
         <form action={signOut}>
           <button className="muted underline">Sign out</button>
         </form>
       </header>
+      <h1 className="text-3xl">Hi, {me.name}</h1>
 
       {mine && (
         <Link href="/check-in" className="btn">

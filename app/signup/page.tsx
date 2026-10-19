@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Logo } from "@/components/Logo";
 import { AuthForm } from "@/components/AuthForm";
 import { signUp } from "@/lib/auth/actions";
 import { previewInvite } from "@/lib/people/invite";
@@ -18,8 +19,9 @@ export default async function SignUp({ searchParams }: PageProps<"/signup">) {
 
   return (
     <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-6 px-5 py-10">
-      <header>
-        <h1 className="text-3xl font-semibold">Join Momwell</h1>
+      <header className="flex flex-col gap-6">
+        <Logo size={36} />
+        <h1 className="text-3xl">Join Momwell</h1>
         {preview && <p className="muted mt-2 text-lg">{preview.from_name} invited you.</p>}
       </header>
       <AuthForm action={signUp} submit="Create my account">
