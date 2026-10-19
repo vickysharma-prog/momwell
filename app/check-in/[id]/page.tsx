@@ -1,3 +1,4 @@
+import { Screen } from "@/components/Screen";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ResultView } from "@/components/ResultView";
@@ -12,7 +13,7 @@ export default async function CheckInResult({ params }: PageProps<"/check-in/[id
   const reasons = data.reasons as Reason[];
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-6 px-5 py-8">
+    <Screen className="settle">
       <ResultView result={{ level: data.level, reasons, crisis: reasons.some((r) => r.id === "harm_thoughts"), noteUnread: Boolean(data.note) }} />
       {data.note && (
         <section className="card">
@@ -23,6 +24,6 @@ export default async function CheckInResult({ params }: PageProps<"/check-in/[id
       <Link href="/home" className="btn-quiet">
         Back home
       </Link>
-    </main>
+    </Screen>
   );
 }

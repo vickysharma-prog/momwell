@@ -56,12 +56,12 @@ h2 {
 /* Phone first: big type, big targets for one hand, soft rounded surfaces. */
 @layer components {
   .card {
-    @apply rounded-3xl border p-5;
+    @apply rounded-3xl border p-5 transition-[border-color,box-shadow,transform] duration-200;
     background: var(--paper-raised);
     border-color: var(--line);
   }
   .field {
-    @apply w-full rounded-2xl border px-4 py-3.5 text-lg outline-none;
+    @apply w-full rounded-2xl border px-4 py-3.5 text-lg outline-none transition-[border-color,outline-color] duration-200;
     background: var(--paper-raised);
     border-color: var(--line);
   }
@@ -70,7 +70,7 @@ h2 {
     outline: 2px solid var(--brand-soft);
   }
   .btn {
-    @apply inline-flex min-h-14 w-full items-center justify-center rounded-full px-6 text-lg font-semibold transition disabled:opacity-60;
+    @apply inline-flex min-h-14 w-full items-center justify-center rounded-full px-6 text-lg font-semibold transition duration-200 active:scale-[0.98] disabled:opacity-60;
     background: var(--brand);
     color: var(--on-brand);
   }
@@ -82,7 +82,7 @@ h2 {
     letter-spacing: -0.02em;
   }
   .btn-quiet {
-    @apply inline-flex min-h-12 items-center justify-center rounded-full border px-5 font-medium;
+    @apply inline-flex min-h-12 items-center justify-center rounded-full border px-5 font-medium transition duration-200 active:scale-[0.97];
     border-color: var(--line);
   }
   .muted {
@@ -90,5 +90,55 @@ h2 {
   }
   .error {
     color: var(--alarm);
+  }
+}
+
+/* Motion: soft and short. Screens fade and rise in; content settles in order; nothing moves for people who ask the
+   system for less motion. */
+::view-transition-old(.page-out) {
+  animation: 160ms ease-in both mw-fade-out;
+}
+::view-transition-new(.page-in) {
+  animation: 380ms cubic-bezier(0.2, 0.8, 0.2, 1) both mw-rise-in;
+}
+@keyframes mw-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes mw-rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+/* Children of .settle arrive one after another. */
+.settle > * {
+  animation: 520ms cubic-bezier(0.2, 0.8, 0.2, 1) both mw-rise-in;
+}
+.settle > :nth-child(2) { animation-delay: 60ms; }
+.settle > :nth-child(3) { animation-delay: 120ms; }
+.settle > :nth-child(4) { animation-delay: 180ms; }
+.settle > :nth-child(5) { animation-delay: 240ms; }
+.settle > :nth-child(6) { animation-delay: 300ms; }
+.settle > :nth-child(n + 7) { animation-delay: 360ms; }
+
+/* A warning arrives with a slow, calm glow on its one button, never a flash. */
+.calm-glow {
+  animation: mw-glow 2.4s ease-in-out 600ms 3;
+}
+@keyframes mw-glow {
+  50% {
+    box-shadow: 0 0 0 10px color-mix(in srgb, var(--alarm) 18%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+    transition: none !important;
   }
 }

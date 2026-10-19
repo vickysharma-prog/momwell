@@ -1,3 +1,4 @@
+import { Screen } from "@/components/Screen";
 import Link from "next/link";
 import { headers } from "next/headers";
 import { Logo } from "@/components/Logo";
@@ -27,7 +28,7 @@ export default async function Home() {
   const people = (links ?? []) as Linked[];
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-6 px-5 py-8">
+    <Screen className="settle">
       <header className="flex items-center justify-between">
         <Logo size={28} />
         <form action={signOut}>
@@ -131,6 +132,6 @@ export default async function Home() {
           ))}
         </section>
       )}
-    </main>
+    </Screen>
   );
 }

@@ -1,3 +1,4 @@
+import { Screen } from "@/components/Screen";
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
 import { AuthForm } from "@/components/AuthForm";
@@ -18,7 +19,7 @@ export default async function SignUp({ searchParams }: PageProps<"/signup">) {
   const picked = fixed ?? (ROLES.includes(asked as Role) ? (asked as Role) : "mother");
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-6 px-5 py-10">
+    <Screen className="settle">
       <header className="flex flex-col gap-6">
         <Logo size={36} />
         <h1 className="text-3xl">Join Momwell</h1>
@@ -48,6 +49,6 @@ export default async function SignUp({ searchParams }: PageProps<"/signup">) {
           Sign in
         </Link>
       </p>
-    </main>
+    </Screen>
   );
 }

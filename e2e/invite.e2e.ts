@@ -28,6 +28,8 @@ async function fresh(): Promise<Page> {
   const context = await browser.createBrowserContext();
   const page = await context.newPage();
   await page.setViewport({ width: 390, height: 844 });
+  // Motion off, as for people who ask their phone for less: clicks never land mid-animation.
+  await page.emulateMediaFeatures([{ name: "prefers-reduced-motion", value: "reduce" }]);
   return page;
 }
 

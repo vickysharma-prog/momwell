@@ -6,10 +6,10 @@ import { CRISIS_LINES } from "@/lib/safety/sources";
 export function ResultView({ result }: { result: Pick<Result, "level" | "reasons" | "crisis" | "noteUnread"> }) {
   const alarm = result.level === "urgent" || result.level === "call_doctor";
   return (
-    <section className={`flex flex-col gap-5 rounded-3xl p-6 ${alarm ? "bg-[var(--alarm-soft)]" : "card"}`} aria-live="assertive">
+    <section className={`settle flex flex-col gap-5 rounded-3xl p-6 ${alarm ? "bg-[var(--alarm-soft)]" : "card"}`} aria-live="assertive">
       <h2 className="text-3xl font-semibold leading-tight">{alarm ? ACTION[result.level] : result.level === "check" ? "Let’s check that again" : "Thank you for checking in"}</h2>
       {alarm && (
-        <a className="btn bg-[var(--alarm)]" href="tel:911">
+        <a className="btn calm-glow bg-[var(--alarm)]" href="tel:911">
           Call 911
         </a>
       )}

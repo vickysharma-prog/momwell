@@ -1,3 +1,4 @@
+import { Screen } from "@/components/Screen";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { CheckInForm } from "@/components/CheckInForm";
@@ -14,7 +15,7 @@ export default async function CheckIn() {
   const stage = stageFrom(dates ?? {}, today);
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col gap-6 px-5 py-8">
+    <Screen className="settle">
       <Link href="/home" className="muted underline">
         Back
       </Link>
@@ -45,6 +46,6 @@ export default async function CheckIn() {
       )}
 
       <CheckInForm signs={signsFor(stage).map(({ id, label, detail }) => ({ id, label, detail }))} />
-    </main>
+    </Screen>
   );
 }

@@ -26,6 +26,8 @@ after(async () => {
 async function signIn(who: Person): Promise<Page> {
   const page = await (await browser.createBrowserContext()).newPage();
   await page.setViewport({ width: 390, height: 844 });
+  // Motion off, as for people who ask their phone for less: clicks never land mid-animation.
+  await page.emulateMediaFeatures([{ name: "prefers-reduced-motion", value: "reduce" }]);
   await page.goto(`${base}/login`);
   await page.type("input[name=email]", who.email);
   await page.type("input[name=password]", who.password);

@@ -1,3 +1,4 @@
+import { Screen } from "@/components/Screen";
 import Link from "next/link";
 import { SCOPE_LABEL } from "@/lib/people/access";
 import { acceptInvite } from "@/lib/people/actions";
@@ -12,7 +13,7 @@ export default async function Join({ params, searchParams }: PageProps<"/join/[t
   const signedIn = Boolean(data?.claims.sub);
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-6 px-5 py-10">
+    <Screen className="justify-center settle">
       {!invite || !invite.usable ? (
         <>
           <h1 className="text-3xl font-semibold">This invite has expired or was already used</h1>
@@ -63,6 +64,6 @@ export default async function Join({ params, searchParams }: PageProps<"/join/[t
           )}
         </>
       )}
-    </main>
+    </Screen>
   );
 }

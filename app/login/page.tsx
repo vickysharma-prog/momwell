@@ -1,3 +1,4 @@
+import { Screen } from "@/components/Screen";
 import Link from "next/link";
 import { Logo } from "@/components/Logo";
 import { AuthForm } from "@/components/AuthForm";
@@ -6,7 +7,7 @@ import { signIn } from "@/lib/auth/actions";
 export default async function Login({ searchParams }: PageProps<"/login">) {
   const { next } = await searchParams;
   return (
-    <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-6 px-5 py-10">
+    <Screen className="justify-center settle">
       <Logo size={36} />
       <h1 className="text-3xl">Welcome back</h1>
       <AuthForm action={signIn} submit="Sign in">
@@ -20,6 +21,6 @@ export default async function Login({ searchParams }: PageProps<"/login">) {
           Create an account
         </Link>
       </p>
-    </main>
+    </Screen>
   );
 }
