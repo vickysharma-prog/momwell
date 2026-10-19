@@ -27,21 +27,22 @@ try {
   await until(maya, "section[aria-live=assertive]");
   await maya.screenshot({ path: out("warning.png"), clip: { x: 260, y: 0, width: 1020, height: 600 } });
 
+  const lee = await as("momwell.demo.lee@example.com");
+  await lee.goto(`${base}/home`, { waitUntil: "networkidle0" });
+  await lee.screenshot({ path: out("care-team.png"), clip: { x: 0, y: 0, width: 1280, height: 640 } });
+
+  // The talk screen needs a live model answer; when the model is slow, the other screens still stand.
   await maya.goto(`${base}/talk`, { waitUntil: "networkidle0" });
   await maya.type("textarea[name], textarea", "My head has been pounding since this morning and it won't stop. My blood pressure is 148 over 94.");
   await maya.keyboard.press("Enter");
   await maya
     .waitForFunction(() => document.querySelectorAll("main section[aria-live=assertive]").length > 0 && !document.querySelector("[aria-label='Momwell is thinking']"), { polling: 500, timeout: 120_000 })
-    .catch(async (e) => {
-      await maya.screenshot({ path: out("talk-debug.png") });
-      throw e;
-    });
-  await new Promise((r) => setTimeout(r, 4000));
-  await maya.screenshot({ path: out("talk.png"), clip: { x: 260, y: 0, width: 1020, height: 820 } });
+    .then(async () => {
+      await new Promise((r) => setTimeout(r, 4000));
+      await maya.screenshot({ path: out("talk.png"), clip: { x: 260, y: 0, width: 1020, height: 820 } });
+    })
+    .catch(() => console.log("talk screen skipped: the model didn't answer in time"));
 
-  const lee = await as("momwell.demo.lee@example.com");
-  await lee.goto(`${base}/home`, { waitUntil: "networkidle0" });
-  await lee.screenshot({ path: out("care-team.png"), clip: { x: 0, y: 0, width: 1280, height: 640 } });
   console.log("screens made");
 } finally {
   await browser.close();

@@ -1,5 +1,5 @@
 import { Hero, LandingHeader } from "@/components/landing/Hero";
-import { Audiences, Facts, Faq, FinalCall, Footer, HowItWorks, MadeForHer, Safety } from "@/components/landing/Sections";
+import { Audiences, Faq, FinalCall, Footer, Journey, MadeForHer, Pillars, SeeItWork, Stakes } from "@/components/landing/Sections";
 
 export default function Landing() {
   return (
@@ -7,11 +7,12 @@ export default function Landing() {
       <LandingHeader />
       <main className="flex-1">
         <Hero />
-        <Facts />
-        <HowItWorks />
+        <Stakes />
+        <Pillars />
+        <Journey />
+        <SeeItWork />
         <MadeForHer />
         <Audiences />
-        <Safety />
         <Faq />
         <FinalCall />
       </main>

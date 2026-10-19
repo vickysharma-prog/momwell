@@ -1,50 +1,47 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
-import { motion } from "motion/react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useEffect, useState } from "react";
 import { Logo } from "@/components/Logo";
-import { MomScene } from "./MomScene";
+import { PHOTOS } from "@/lib/landing/photos";
 
 const LINKS = [
   ["How it works", "#how"],
-  ["Made for her", "#for-her"],
-  ["Her people", "#people"],
-  ["Care teams", "#care-teams"],
   ["Safety", "#safety"],
+  ["For families", "#families"],
+  ["For clinicians", "#clinicians"],
 ] as const;
 
-// The landing page header: logo, the sections in a soft pill that a highlight follows, and the way in.
+// A plain, confident header: the name, four links, and the two ways in.
 export function LandingHeader() {
   const [scrolled, setScrolled] = useState(false);
-  const [hover, setHover] = useState<string | null>(null);
   useEffect(() => {
-    const on = () => setScrolled(window.scrollY > 12);
+    const on = () => setScrolled(window.scrollY > 8);
     on();
     window.addEventListener("scroll", on, { passive: true });
     return () => window.removeEventListener("scroll", on);
   }, []);
-
   return (
-    <header className={`sticky top-0 z-40 transition-colors duration-300 ${scrolled ? "border-b border-line/70 bg-paper/85 backdrop-blur-md" : "border-b border-transparent"}`}>
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-5 py-4 sm:px-8 md:grid md:grid-cols-[1fr_auto_1fr]">
-        <Link href="/" className="justify-self-start" aria-label="Momwell home">
+    <header className={`sticky top-0 z-40 border-b bg-paper/90 backdrop-blur-md transition-colors ${scrolled ? "border-line" : "border-transparent"}`}>
+      <div className="mx-auto flex h-18 max-w-7xl items-center gap-10 px-5 sm:px-8">
+        <Link href="/" aria-label="Momwell home">
           <Logo size={30} />
         </Link>
-        <nav onMouseLeave={() => setHover(null)} aria-label="Sections" className="hidden items-center gap-1 rounded-full border border-line bg-paper-raised/70 p-1 text-sm backdrop-blur-md md:flex">
+        <nav aria-label="Sections" className="hidden gap-8 text-[15px] text-ink-soft lg:flex">
           {LINKS.map(([label, href]) => (
-            <a key={href} href={href} onMouseEnter={() => setHover(href)} className="relative rounded-full px-4 py-1.5 text-ink-soft transition-colors hover:text-ink">
-              {hover === href && <motion.span layoutId="nav-hover" className="absolute inset-0 rounded-full bg-brand-soft" transition={{ type: "spring", stiffness: 420, damping: 34 }} />}
-              <span className="relative">{label}</span>
+            <a key={href} href={href} className="transition-colors hover:text-ink">
+              {label}
             </a>
           ))}
         </nav>
-        <div className="flex items-center gap-2 justify-self-end">
-          <Link href="/login" className="hidden h-10 items-center rounded-full px-4 text-sm font-medium text-ink-soft transition-colors hover:text-ink sm:flex">
+        <div className="ml-auto flex items-center gap-3">
+          <Link href="/login" className="hidden px-3 text-[15px] font-medium text-ink-soft hover:text-ink sm:block">
             Sign in
           </Link>
-          <Link href="/signup" className="flex h-10 items-center rounded-full bg-brand px-5 text-sm font-semibold text-on-brand transition active:scale-[0.97]">
-            Get started
+          <Link href="/demo" className="flex h-11 items-center rounded-full bg-brand px-5 text-[15px] font-semibold text-on-brand transition active:scale-[0.98]">
+            Try the demo
           </Link>
         </div>
       </div>
@@ -52,36 +49,94 @@ export function LandingHeader() {
   );
 }
 
-// The first screen: what Momwell is in one line, the two ways in, and the journey it covers, alive.
+const SCENES = [
+  { photo: PHOTOS.pregnant, time: "28 weeks", title: "Check-in complete", detail: "Blood pressure 118/76 · no warning signs" },
+  { photo: PHOTOS.newborn, time: "Week 6 after birth", title: "Sam took tonight’s feeds", detail: "Maya’s circle, on the same page" },
+] as const;
+
+// The photograph changes from pregnancy to the months after birth, slowly, with a real moment from the app on top.
+function HeroPhoto() {
+  const still = useReducedMotion();
+  const [i, setI] = useState(0);
+  useEffect(() => {
+    if (still) return;
+    const t = setInterval(() => setI((n) => (n + 1) % SCENES.length), 6000);
+    return () => clearInterval(t);
+  }, [still]);
+  const scene = SCENES[i];
+  return (
+    <div className="relative">
+      <div className="relative aspect-[4/5] overflow-hidden rounded-[28px] bg-brand-soft">
+        <AnimatePresence initial={false}>
+          <motion.div key={i} className="absolute inset-0" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 1.2 }}>
+            <motion.div className="absolute inset-0" initial={{ scale: 1.08 }} animate={{ scale: 1 }} transition={{ duration: 7, ease: "easeOut" }}>
+              <Image src={scene.photo.src} alt={scene.photo.alt} fill priority sizes="(min-width: 1024px) 40vw, 100vw" className="object-cover" />
+            </motion.div>
+          </motion.div>
+        </AnimatePresence>
+        <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/25 to-transparent" aria-hidden="true" />
+      </div>
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={i}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+          className="absolute -bottom-6 left-6 flex max-w-[300px] items-start gap-3 rounded-2xl border border-line bg-paper-raised p-4 shadow-[0_24px_60px_-24px_rgba(31,26,46,0.45)] sm:-left-8"
+        >
+          <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-full bg-brand text-on-brand">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M20 6 9 17l-5-5" />
+            </svg>
+          </span>
+          <span className="flex flex-col">
+            <span className="text-xs font-semibold tracking-wider text-ink-soft uppercase">{scene.time}</span>
+            <span className="font-semibold">{scene.title}</span>
+            <span className="text-sm text-ink-soft">{scene.detail}</span>
+          </span>
+        </motion.div>
+      </AnimatePresence>
+    </div>
+  );
+}
+
+// The first screen: what Momwell is, why it matters, and the way in.
 export function Hero() {
   return (
-    <section className="relative overflow-hidden">
-      <div aria-hidden="true" className="pointer-events-none absolute -top-40 right-[-10%] h-[620px] w-[620px] rounded-full bg-brand-soft opacity-70 blur-3xl" />
-      <div aria-hidden="true" className="pointer-events-none absolute top-[360px] left-[-12%] h-[420px] w-[420px] rounded-full bg-honey opacity-15 blur-3xl" />
-      <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-5 pt-8 pb-20 sm:px-8 md:pt-14 lg:grid-cols-[1.15fr_0.85fr]">
-        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: [0.2, 0.8, 0.2, 1] }} className="flex flex-col gap-7">
-          <p className="w-fit rounded-full border border-line bg-paper-raised px-4 py-1.5 text-sm font-medium text-ink-soft">The care companion for pregnancy and the year after</p>
-          <h1 className="text-5xl leading-[1.04] sm:text-6xl lg:text-[3.6rem]">
-            From first heartbeat to first birthday, <span className="text-brand italic">Momwell keeps watch.</span>
-          </h1>
-          <p className="max-w-xl text-lg leading-relaxed text-ink-soft sm:text-xl">
-            One companion for everything she needs. It checks the CDC’s urgent warning signs with her every day, gathers her partner, family and care team around her, and makes each day feel like hers.
+    <section className="mx-auto grid max-w-7xl items-center gap-14 px-5 pt-10 pb-24 sm:px-8 lg:grid-cols-[1.1fr_0.9fr] lg:gap-20 lg:pt-16">
+      <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, ease: [0.2, 0.8, 0.2, 1] }} className="flex flex-col gap-8">
+        <p className="flex flex-wrap items-center gap-3 text-sm font-medium text-ink-soft">
+          <span className="font-semibold tracking-widest text-brand uppercase">Maternal care companion</span>
+          <span className="h-4 w-px bg-line" aria-hidden="true" />
+          <span>Powered by Qloo’s taste intelligence</span>
+        </p>
+        <h1 className="text-[2.75rem] leading-[1.05] tracking-tight sm:text-6xl lg:text-[4.1rem]">From first heartbeat to first birthday, Momwell keeps watch.</h1>
+        <p className="max-w-xl text-lg leading-relaxed text-ink-soft sm:text-xl">
+          Every day, Momwell checks the CDC’s urgent maternal warning signs with her, through pregnancy and the year after birth. It knows what she loves, so she keeps coming back. And it gathers her partner, family and care team into one circle around her.
+        </p>
+        <div className="flex flex-wrap items-center gap-3">
+          <Link href="/demo" className="flex h-14 items-center rounded-full bg-brand px-8 text-lg font-semibold text-on-brand shadow-[0_18px_40px_-18px_var(--brand)] transition active:scale-[0.98]">
+            Try it as Maya
+          </Link>
+          <Link href="/signup" className="flex h-14 items-center rounded-full border border-line bg-paper-raised px-7 text-lg font-medium transition hover:border-brand">
+            Start for free
+          </Link>
+        </div>
+        <div className="flex flex-col gap-2 border-t border-line pt-6">
+          <p className="text-xs font-semibold tracking-widest text-ink-soft uppercase">Built on public guidance from</p>
+          <p className="flex flex-wrap gap-x-6 gap-y-1 text-[15px] font-semibold text-ink">
+            <span>CDC Hear Her</span>
+            <span>ACOG</span>
+            <span>NIH</span>
+            <span>FDA</span>
+            <span>988 Lifeline</span>
           </p>
-          <div className="flex flex-wrap items-center gap-3">
-            <Link href="/demo" className="flex h-14 items-center rounded-full bg-brand px-8 text-lg font-semibold text-on-brand shadow-[0_18px_40px_-18px_var(--brand)] transition active:scale-[0.98]">
-              Try it as Maya
-            </Link>
-            <Link href="/signup" className="flex h-14 items-center rounded-full border border-line bg-paper-raised px-7 text-lg font-medium transition hover:border-brand">
-              Start for free
-            </Link>
-          </div>
-          <p className="text-sm text-ink-soft">One click opens a demo family: Maya at 27 weeks, her partner Sam and her OB-GYN. No sign-up.</p>
-        </motion.div>
-
-        <motion.div initial={{ opacity: 0, y: 30, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ duration: 0.8, delay: 0.15, ease: [0.2, 0.8, 0.2, 1] }} className="relative">
-          <MomScene />
-        </motion.div>
-      </div>
+        </div>
+      </motion.div>
+      <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.9, delay: 0.1, ease: [0.2, 0.8, 0.2, 1] }}>
+        <HeroPhoto />
+      </motion.div>
     </section>
   );
 }
