@@ -19,10 +19,13 @@ const RULES: { id: string; match: RegExp; text: string }[] = [
   { id: "sprouts", match: /salad|vegan|vegetarian|healthy|poke/, text: "Ask for no raw sprouts." },
 ];
 
-/** The FDA notes for a place, from its tag ids. Each note at most once. */
-export function notesFor(tagIds: string[]): FoodNote[] {
-  const words = tagIds.map((t) => t.split(":").slice(3).join(":")).join(" ");
-  return RULES.filter((r) => r.match.test(words)).map(({ id, text }) => ({ id, text }));
+// Only what kind of place it is counts: its cuisines and restaurant genres, not every dish or offering Qloo lists.
+const KIND = /^urn:tag:(cuisine:qloo|genre:place:restaurant):/;
+
+/** The FDA notes for a place, from its tag ids: the most important first, at most `max`. */
+export function notesFor(tagIds: string[], max = 2): FoodNote[] {
+  const words = tagIds.filter((t) => KIND.test(t)).map((t) => t.split(":").slice(3).join(":")).join(" ");
+  return RULES.filter((r) => r.match.test(words)).slice(0, max).map(({ id, text }) => ({ id, text }));
 }
 
 // Diets she can pick, as Qloo's dietary tags.

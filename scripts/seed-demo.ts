@@ -4,6 +4,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { defaultSees } from "../lib/people/access.ts";
 import { evaluate } from "../lib/safety/engine.ts";
+import { search } from "../lib/qloo/api.ts";
 
 const admin = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, { auth: { persistSession: false } });
 const password = process.env.MOMWELL_DEMO_PASSWORD!;
@@ -46,4 +47,12 @@ must(await admin.from("checkins").insert({ mother_id: id.mom, created_at: new Da
 const warn = evaluate({ signs: ["headache"], bp: { systolic: 148, diastolic: 94 } });
 const { data: c } = await admin.from("checkins").insert({ mother_id: id.mom, signs: ["headache"], systolic: 148, diastolic: 94, note: "Headache since this morning, worse when I stand up.", level: warn.level, reasons: warn.reasons, engine_version: warn.version }).select("id").single();
 must(await admin.from("alerts").insert({ mother_id: id.mom, checkin_id: c!.id, level: warn.level }));
+// What Maya loves, found in Qloo (cached, so a re-seed costs no quota).
+const picks: [string, "tv_show" | "movie" | "artist"][] = [["Gilmore Girls", "tv_show"], ["Ted Lasso", "tv_show"], ["Little Women", "movie"], ["Adele", "artist"], ["Norah Jones", "artist"]];
+const liked = [];
+for (const [q, kind] of picks) {
+  const [e] = await search(q, 1, `urn:entity:${kind}`);
+  if (e) liked.push({ id: e.entity_id, name: e.name, kind });
+}
+must(await admin.from("tastes").insert({ mother_id: id.mom, city: "Austin, TX", diets: ["vegetarian"], liked }));
 console.log("demo family ready:", PEOPLE.map((p) => p.email).join(", "));
