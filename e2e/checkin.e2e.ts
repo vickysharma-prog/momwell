@@ -101,3 +101,14 @@ test("nothing to report is a thank-you, not an alarm", async () => {
   assert.match(await text(m), /Thank you for checking in/);
   assert.equal(await m.$("a[href='tel:911']"), null);
 });
+
+test("a note with nothing tapped is not called a clear day, and points back to the list", async () => {
+  await m.goto(`${base}/check-in`);
+  await m.type("textarea[name=note]", "chest pain since this morning");
+  await done(m);
+  const shown = await text(m);
+  assert.doesNotMatch(shown, /Nothing you told us/);
+  assert.match(shown, /not what you wrote/);
+  assert.match(shown, /You wrote\s+chest pain since this morning/);
+  assert.ok(await m.$("a[href='/check-in']"));
+});

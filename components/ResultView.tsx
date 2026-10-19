@@ -1,8 +1,9 @@
-import { ACTION, type Result } from "@/lib/safety/engine";
+import Link from "next/link";
+import { ACTION, NOTE_UNREAD, type Result } from "@/lib/safety/engine";
 import { CRISIS_LINES } from "@/lib/safety/sources";
 
 // What she sees after a check-in. A warning sign gets a calm, distinct screen with one clear thing to do.
-export function ResultView({ result }: { result: Pick<Result, "level" | "reasons" | "crisis"> }) {
+export function ResultView({ result }: { result: Pick<Result, "level" | "reasons" | "crisis" | "noteUnread"> }) {
   const alarm = result.level === "urgent" || result.level === "call_doctor";
   return (
     <section className={`flex flex-col gap-5 rounded-3xl p-6 ${alarm ? "bg-[var(--alarm-soft)]" : "card"}`} aria-live="assertive">
@@ -39,8 +40,13 @@ export function ResultView({ result }: { result: Pick<Result, "level" | "reasons
           ))}
         </ul>
       )}
-      {result.level === "none" && <p className="muted text-lg">{ACTION.none}</p>}
+      {result.level === "none" && <p className="muted text-lg">{result.noteUnread ? NOTE_UNREAD : ACTION.none}</p>}
       {result.level === "check" && <p className="muted text-lg">{ACTION.check}</p>}
+      {(result.level === "check" || result.noteUnread) && (
+        <Link className="btn-quiet" href="/check-in">
+          Back to the list
+        </Link>
+      )}
     </section>
   );
 }

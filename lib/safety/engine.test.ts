@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { ACTION, evaluate, type CheckIn, type Level } from "./engine.ts";
+import { ACTION, evaluate, NOTE_UNREAD, type CheckIn, type Level } from "./engine.ts";
 import { SIGN_IDS, SIGNS, signsFor } from "./signs.ts";
 import { CRISIS_LINES, SOURCES } from "./sources.ts";
 
@@ -100,7 +100,7 @@ test("every reason names its source", () => {
 test("nothing she reads names a condition: the app never diagnoses", () => {
   const conditions = /preeclampsia|eclampsia|sepsis|embolism|hemorrhage|haemorrhage|cardiomyopathy|stroke|infection|depression|psychosis|blood clot|thrombosis|hellp|diagnos/i;
   const r = evaluate({ signs: [...SIGN_IDS], bp: { systolic: 170, diastolic: 115 }, temp: { value: 39, unit: "C" } });
-  const shown = [...r.reasons.map((x) => x.text), ...Object.values(ACTION), ...SIGNS.flatMap((s) => [s.label, s.detail]), ...CRISIS_LINES.map((c) => c.note)];
+  const shown = [...r.reasons.map((x) => x.text), ...Object.values(ACTION), NOTE_UNREAD, ...SIGNS.flatMap((s) => [s.label, s.detail]), ...CRISIS_LINES.map((c) => c.note)];
   for (const line of shown) assert.doesNotMatch(line, conditions, line);
 });
 
@@ -133,4 +133,12 @@ test("the rest last the year after birth", () => {
 
 test("not knowing her stage shows every sign", () => {
   assert.equal(signsFor({ kind: "unknown" }).length, 15);
+});
+
+test("a note the rules can't read is never called a clear day", () => {
+  const r = evaluate({ signs: [], note: "chest pain since this morning" });
+  assert.equal(r.level, "none");
+  assert.equal(r.noteUnread, true);
+  assert.doesNotMatch(NOTE_UNREAD, /Nothing you told us/);
+  assert.equal(evaluate({ signs: [], note: "   " }).noteUnread, false);
 });

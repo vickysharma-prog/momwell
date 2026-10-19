@@ -14,10 +14,11 @@ export type Reading = {
   bp?: { systolic: number; diastolic: number };
   temp?: { value: number; unit: "F" | "C" };
 };
-export type CheckIn = { signs: SignId[] } & Reading;
+export type CheckIn = { signs: SignId[]; note?: string } & Reading;
 
 export type Reason = { id: string; text: string; level: Level; source: Source };
-export type Result = { level: Level; reasons: Reason[]; crisis: boolean; version: string };
+// noteUnread: she wrote something the rules can't read. We say so rather than call the day clear.
+export type Result = { level: Level; reasons: Reason[]; crisis: boolean; noteUnread: boolean; version: string };
 
 export const ACTION: Record<Level, string> = {
   urgent: "Get medical care now. If it's an emergency, call 911.",
@@ -25,6 +26,9 @@ export const ACTION: Record<Level, string> = {
   check: "Please check that number and enter it again.",
   none: "Nothing you told us today is on the warning-sign list. Keep checking in, and trust your body.",
 };
+
+export const NOTE_UNREAD =
+  "We checked the boxes you tapped, not what you wrote. If anything you wrote is on the list, go back and tap it. If you're not sure about something, call your doctor.";
 
 const toF = (t: NonNullable<Reading["temp"]>) => (t.unit === "F" ? t.value : (t.value * 9) / 5 + 32);
 
@@ -67,6 +71,7 @@ export function evaluate(checkIn: CheckIn): Result {
     level: reasons[0]?.level ?? "none",
     reasons,
     crisis: reasons.some((r) => r.id === "harm_thoughts"),
+    noteUnread: Boolean(checkIn.note?.trim()),
     version: ENGINE_VERSION,
   };
 }
