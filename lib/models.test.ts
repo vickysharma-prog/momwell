@@ -3,11 +3,11 @@ import assert from "node:assert/strict";
 import { route } from "./models.ts";
 
 test("defaults to Gemini Flash", () => {
-  assert.deepEqual(route({}), { via: "gateway", model: "google/gemini-3.5-flash" });
+  assert.deepEqual(route({}), { via: "gateway", model: "google/gemini-3.8-flash" });
 });
 
 test("Gemini goes direct when its key is set", () => {
-  assert.deepEqual(route({ GOOGLE_GENERATIVE_AI_API_KEY: "k" }), { via: "google", model: "gemini-3.5-flash" });
+  assert.deepEqual(route({ GOOGLE_GENERATIVE_AI_API_KEY: "k" }), { via: "google", model: "gemini-3.8-flash" });
 });
 
 test("switching models is one env var", () => {

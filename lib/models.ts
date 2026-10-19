@@ -2,13 +2,13 @@ import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { wrapLanguageModel, type LanguageModel } from "ai";
 
 // One place picks the model for the agent. Switching models is one env var, no code change:
-//   MOMWELL_MODEL="google/gemini-3.5-flash"      (the default)
+//   MOMWELL_MODEL="google/gemini-3.8-flash"      (the default)
 // Gemini is called directly with Momwell's own key; any other id goes through Vercel AI Gateway.
 
 export type Route = { via: "google" | "gateway"; model: string };
 
 export function route(env: Record<string, string | undefined> = process.env): Route {
-  const id = env.MOMWELL_MODEL ?? "google/gemini-3.5-flash";
+  const id = env.MOMWELL_MODEL ?? "google/gemini-3.8-flash";
   const [provider, ...rest] = id.split("/");
   const model = rest.join("/");
   if (provider === "google" && env.GOOGLE_GENERATIVE_AI_API_KEY) return { via: "google", model };
@@ -17,7 +17,8 @@ export function route(env: Record<string, string | undefined> = process.env): Ro
 
 // Gemini models to fall back to, in order, when the chosen one is out of quota. Each free-tier model has its own
 // daily quota, so a busy day on one (evals, a demo) doesn't stop her check-in. MOMWELL_FALLBACK_MODELS overrides.
-const GEMINI_FALLBACKS = ["gemini-3.5-flash", "gemini-3.1-flash-lite", "gemini-2.5-flash"];
+// gemini-2.5-flash is closed to new keys (19 Oct 2026), so the chain is the 3.x line.
+const GEMINI_FALLBACKS = ["gemini-3.8-flash", "gemini-3.7-flash", "gemini-3.6-flash", "gemini-3.5-flash", "gemini-3.1-flash-lite"];
 
 /**
  * A quota, rate-limit or "too busy right now" error: worth trying another model. Anything else (a bad request, a bad
