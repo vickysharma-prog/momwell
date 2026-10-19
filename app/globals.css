@@ -10,6 +10,7 @@
   --accent: #d9776b;
   --calm: #6f9a8d;
   --alarm: #c0392b;
+  --alarm-soft: #fbe3df;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -22,6 +23,7 @@
     --accent: #f0998d;
     --calm: #8fbcae;
     --alarm: #ff6b5b;
+    --alarm-soft: #4a2420;
   }
 }
 

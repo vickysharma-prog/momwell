@@ -1,20 +1,25 @@
+import Link from "next/link";
 import { headers } from "next/headers";
 import { CopyLink } from "@/components/CopyLink";
 import { signOut } from "@/lib/auth/actions";
 import { SCOPE_LABEL, SCOPES, type Scope } from "@/lib/people/access";
+import { markSeen } from "@/lib/checkin/actions";
 import { cancelInvite, createInvite, removeLink, setSees } from "@/lib/people/actions";
 import { requireMe } from "@/lib/people/me";
 
+type Alert = { id: string; mother_id: string; checkin_id: string; level: "urgent" | "call_doctor"; created_at: string; seen_at: string | null; mother: { name: string }; seer: { name: string } | null };
 type Linked = { mother_id: string; person_id: string; kind: string; relation: string; partner: boolean; sees: Scope[]; other: { name: string } };
 
 export default async function Home() {
   const { db, me } = await requireMe();
   const mine = me.role === "mother";
-  const [{ data: links }, { data: invites }] = await Promise.all([
+  const [{ data: links }, { data: invites }, { data: alerts }] = await Promise.all([
     mine
       ? db.from("links").select("*, other:profiles!links_person_id_fkey(name)").eq("mother_id", me.id).order("created_at")
       : db.from("links").select("*, other:profiles!links_mother_id_fkey(name)").eq("person_id", me.id).order("created_at"),
     db.from("invites").select("token, kind, relation, partner").is("accepted_by", null).gt("expires_at", new Date().toISOString()).order("created_at"),
+    // Row-level security returns only alerts for moms who share alerts with this person (or her own).
+    db.from("alerts").select("id, mother_id, checkin_id, level, created_at, seen_at, mother:profiles!alerts_mother_id_fkey(name), seer:profiles!alerts_seen_by_fkey(name)").order("created_at", { ascending: false }).limit(20),
   ]);
   const h = await headers();
   const origin = `${h.get("x-forwarded-proto") ?? "http"}://${h.get("host")}`;
@@ -28,6 +33,37 @@ export default async function Home() {
           <button className="muted underline">Sign out</button>
         </form>
       </header>
+
+      {mine && (
+        <Link href="/check-in" className="btn">
+          Check in today
+        </Link>
+      )}
+
+      {(alerts ?? []).length > 0 && (
+        <section className="flex flex-col gap-3" aria-label="Alerts">
+          <h2 className="text-xl font-semibold">{mine ? "Your alerts" : "Alerts"}</h2>
+          {(alerts as unknown as Alert[]).map((a) => (
+            <article key={a.id} className={`flex flex-col gap-2 rounded-3xl p-4 ${a.seen_at ? "card" : "bg-[var(--alarm-soft)]"}`}>
+              <p className="text-lg font-medium">
+                {mine
+                  ? a.level === "urgent" ? "You reported a warning sign" : "Your blood pressure was high"
+                  : `${a.mother.name} ${a.level === "urgent" ? "needs you to check on her now" : "was told to call her doctor"}`}
+              </p>
+              <p className="muted text-sm">
+                {new Date(a.created_at).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })}
+                {a.seen_at ? ` · Seen by ${a.seer?.name ?? "her care team"}` : " · Not seen yet"}
+              </p>
+              {!mine && people.find((p) => p.mother_id === a.mother_id)?.sees.includes("checkins") && <Link className="underline" href={`/check-in/${a.checkin_id}`}>What she reported</Link>}
+              {me.role === "care_team" && !a.seen_at && (
+                <form action={markSeen.bind(null, a.id)}>
+                  <button className="btn-quiet">Seen</button>
+                </form>
+              )}
+            </article>
+          ))}
+        </section>
+      )}
 
       <section className="flex flex-col gap-3">
         <h2 className="text-xl font-semibold">{mine ? "Your people" : me.role === "care_team" ? "Your patients" : "Moms you're helping"}</h2>
