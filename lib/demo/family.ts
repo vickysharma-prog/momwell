@@ -54,5 +54,13 @@ export async function fillFamily(admin: SupabaseClient, id: Record<Member, strin
       .select("id")
       .single(),
   );
+  // What Maya asked her circle for: Sam has tonight's feeds; dinner is still open.
+  const today = new Date().toISOString().slice(0, 10);
+  must(
+    await admin.from("asks").insert([
+      { mother_id: id.mom, kind: "night_feeds", note: "", needed_on: today, taken_by: id.partner, taken_at: new Date().toISOString() },
+      { mother_id: id.mom, kind: "meal", needed_on: today, note: "Something warm, vegetarian" },
+    ]),
+  );
   must(await admin.from("alerts").insert({ mother_id: id.mom, checkin_id: c!.id, level: warn.level, created_at: new Date(Date.now() - 2 * 3_600_000).toISOString() }));
 }

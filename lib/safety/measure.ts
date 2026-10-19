@@ -13,7 +13,7 @@ export function measure(detect: (text: string) => SignId[], data: Labelled[]): S
   for (const { text, signs } of data) {
     const got = new Set(detect(text));
     const want = new Set(signs);
-    for (const s of got) (want.has(s) ? tp++ : fp++);
+    for (const s of got) if (want.has(s)) tp++; else fp++;
     for (const s of want) if (!got.has(s)) fn++;
     if (want.size && !signs.every((s) => got.has(s))) missedMessages.push(text);
     if (!want.size && got.size) flaggedClean.push(text);

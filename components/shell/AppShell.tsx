@@ -19,6 +19,7 @@ const PATHS: Record<Icon, React.ReactNode> = {
     </>
   ),
   talk: <path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z" />,
+  help: <path d="M12 21s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.6-7 10-7 10z" />,
   foryou: <path d="M12 3l1.9 4.6L18.5 9l-4.6 1.9L12 15.5l-1.9-4.6L5.5 9l4.6-1.4zM19 15l.8 2 2 .8-2 .8L19 20.6l-.8-2-2-.8 2-.8z" />,
   people: (
     <>

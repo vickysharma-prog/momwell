@@ -3,10 +3,12 @@ import { AlertList, type Alert } from "@/components/AlertList";
 import { AppPage } from "@/components/AppPage";
 import { CareHome } from "@/components/care/CareHome";
 import type { Scope } from "@/lib/people/access";
+import { askLine, type AskKind } from "@/lib/help/asks";
 import { requireMe } from "@/lib/people/me";
 import { stageFrom, weeksPregnant } from "@/lib/safety/stage";
 
 type Linked = { mother_id: string; person_id: string; kind: string; relation: string; partner: boolean; sees: Scope[]; other: { name: string } };
+type HelpAsk = { id: string; kind: AskKind; needed_on: string; taken_by: string | null; mom: { name: string } | null; taker: { name: string } | null };
 type CheckIn = { id: string; created_at: string; level: "urgent" | "call_doctor" | "check" | "none" };
 
 const LEVEL: Record<CheckIn["level"], { label: string; dot: string }> = {
@@ -24,7 +26,7 @@ export default async function Today() {
   const { db, me } = await requireMe();
   if (me.role === "care_team") return <CareHome db={db} me={me} />;
   const mine = me.role === "mother";
-  const [{ data: links }, { data: alerts }, { data: checkins }, { data: dates }] = await Promise.all([
+  const [{ data: links }, { data: alerts }, { data: checkins }, { data: dates }, { data: asks }] = await Promise.all([
     mine
       ? db.from("links").select("*, other:profiles!links_person_id_fkey(name)").eq("mother_id", me.id).order("created_at")
       : db.from("links").select("*, other:profiles!links_mother_id_fkey(name)").eq("person_id", me.id).order("created_at"),
@@ -32,7 +34,28 @@ export default async function Today() {
     db.from("alerts").select("id, mother_id, checkin_id, level, created_at, seen_at, mother:profiles!alerts_mother_id_fkey(name), seer:profiles!alerts_seen_by_fkey(name)").order("seen_at", { ascending: false, nullsFirst: true }).order("created_at", { ascending: false }).limit(20),
     mine ? db.from("checkins").select("id, created_at, level").eq("mother_id", me.id).order("created_at", { ascending: false }).limit(6) : Promise.resolve({ data: [] }),
     mine ? db.from("mothers").select("due_date, birth_date").eq("id", me.id).maybeSingle() : Promise.resolve({ data: null }),
+    // What she asked her circle for, from today on (row-level security: hers, or moms who share ways to help).
+    db.from("asks").select("id, kind, needed_on, taken_by, mom:profiles!asks_mother_id_fkey(name), taker:profiles!asks_taken_by_fkey(name)").eq("done", false).gte("needed_on", new Date().toISOString().slice(0, 10)).order("needed_on").limit(6),
   ]);
+  const help = (asks ?? []) as unknown as HelpAsk[];
+  const helpCard = help.length > 0 && (
+    <section className="card flex flex-col gap-3" aria-label="Help">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl">{mine ? "Help today" : "She asked for"}</h2>
+        <Link href="/help" className="text-sm font-medium text-brand underline underline-offset-4">
+          {mine ? "Ask for more" : "See all"}
+        </Link>
+      </div>
+      <ul className="flex flex-col gap-2">
+        {help.map((a) => (
+          <li key={a.id} className="flex flex-wrap items-baseline justify-between gap-2">
+            <span>{mine ? askLine(a.kind, a.needed_on, new Date().toISOString().slice(0, 10)) : `${a.mom?.name}: ${askLine(a.kind, a.needed_on, new Date().toISOString().slice(0, 10)).toLowerCase()}`}</span>
+            <span className={`text-sm font-medium ${a.taken_by ? "text-brand" : "text-ink-soft"}`}>{a.taken_by ? (a.taken_by === me.id ? "You’re on it" : `${a.taker?.name} is on it`) : "Waiting"}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
   const people = (links ?? []) as Linked[];
   const recent = (checkins ?? []) as CheckIn[];
   const today = new Date();
@@ -90,6 +113,7 @@ export default async function Today() {
 
           <div className="flex flex-col gap-6">
             {(alerts ?? []).length > 0 && <AlertList alerts={alerts as unknown as Alert[]} role={me.role} canOpen={canOpen} />}
+            {helpCard}
             <section className="card flex flex-col gap-4" aria-label="Your people">
               <div className="flex items-center justify-between">
                 <h2 className="text-2xl">Your people</h2>
@@ -123,6 +147,7 @@ export default async function Today() {
               <p className="mt-2 text-ink-soft">{people.length ? "Everyone is all clear. We’ll tell you the moment someone needs you." : "Accept an invite link from a mom to get started."}</p>
             </section>
           )}
+          {helpCard}
           <section className="card flex flex-col gap-4" aria-label="Moms">
             <h2 className="text-2xl">Moms you’re helping</h2>
             {people.length === 0 ? (
