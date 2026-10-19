@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SCOPE_LABEL } from "@/lib/people/access";
 import { acceptInvite } from "@/lib/people/actions";
 import { previewInvite } from "@/lib/people/invite";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -24,9 +25,19 @@ export default async function Join({ params, searchParams }: PageProps<"/join/[t
               ? `${invite.from_name} invited you to Momwell as their patient`
               : `${invite.from_name} invited you to ${invite.kind === "circle" ? "her circle" : "her care team"}`}
           </h1>
+          {invite.from_role === "care_team" && (
+            <div className="card">
+              <p className="mb-2 font-medium">{invite.from_name} will see</p>
+              <ul className="muted list-disc pl-5">
+                {invite.sees.map((s) => (
+                  <li key={s}>{SCOPE_LABEL[s]}</li>
+                ))}
+              </ul>
+            </div>
+          )}
           <p className="muted text-lg">
             {invite.from_role === "care_team"
-              ? "They'll see what you choose to share, and you can change that at any time."
+              ? "You can change this or remove them at any time."
               : invite.kind === "circle"
                 ? `You'll see how to help ${invite.partner ? "as her partner" : ""}, and only what she chooses to share.`
                 : "You'll see the check-ins and alerts she chooses to share with her care team."}

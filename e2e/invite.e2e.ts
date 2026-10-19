@@ -90,3 +90,19 @@ test("signed-out visitors are sent to sign in", async () => {
   await page.goto(`${base}/home`);
   assert.equal(new URL(page.url()).pathname, "/login");
 });
+
+test("a clinician's invite shows the mother what they will see before she accepts", async () => {
+  const doc = await fresh();
+  await doc.goto(`${base}/signup?role=care_team`);
+  await signUp(doc, "Dr Lee", `momwell.e2e.doc.${run}@example.com`);
+  await doc.type("input[name=relation]", "OB-GYN");
+  await Promise.all([doc.waitForResponse((r) => r.request().method() === "POST"), doc.click("form:has(input[name=relation]) button.btn")]);
+  await doc.waitForFunction(() => document.body.innerText.includes("OB-GYN · waiting"));
+
+  const { data } = await admin.from("invites").select("token").eq("relation", "OB-GYN").order("created_at", { ascending: false }).limit(1).single();
+  const page = await fresh();
+  await page.goto(`${base}/join/${data!.token}`);
+  const shown = await text(page);
+  assert.match(shown, /Dr Lee invited you to Momwell as their patient/);
+  assert.match(shown, /Dr Lee will see[\s\S]*Mood screening/);
+});

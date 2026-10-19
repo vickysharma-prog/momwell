@@ -7,7 +7,8 @@ import { defaultSees, SCOPES } from "./access";
 import { requireMe } from "./me";
 
 const inviteInput = z.object({
-  kind: z.enum(["circle", "care_team"]),
+  // A clinician's form has no kind: their invites are always for a patient.
+  kind: z.enum(["circle", "care_team"]).default("care_team"),
   relation: z.string().trim().max(40).default(""),
   partner: z.literal("on").optional(),
 });
