@@ -17,7 +17,7 @@ export function CheckInForm({ signs }: { signs: SignOption[] }) {
       </div>
     );
   return (
-    <form action={action} className="grid items-start gap-6 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
+    <form action={action} className="grid items-start gap-6 pb-20 md:pb-0 lg:grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)]">
       <fieldset className="grid gap-3 md:grid-cols-2">
         <legend className="mb-3 text-2xl">Is any of this happening?</legend>
         {signs.map((s) => (
@@ -55,13 +55,13 @@ export function CheckInForm({ signs }: { signs: SignOption[] }) {
         <textarea name="note" className="field min-h-28" maxLength={2000} placeholder="How you slept, how you feel, a question for your next visit…" />
       </label>
 
-      </div>
-      {/* Always within reach: above the tab bar on a phone, at the foot of the readings on a desktop. */}
-      <div className="sticky bottom-[6.5rem] z-10 flex flex-col gap-3 md:bottom-6 lg:col-start-2">
+      {/* Always within reach: held above the tab bar on a phone, under the readings on a larger screen. */}
+      <div className="fixed inset-x-5 bottom-[6.5rem] z-20 flex flex-col gap-3 md:static">
         {state?.error && <p role="alert" className="error rounded-2xl bg-paper-raised p-3">{state.error}</p>}
         <button className="btn shadow-[0_16px_40px_-16px_var(--brand)]" disabled={pending}>
           {pending ? "Checking…" : "Done"}
         </button>
+      </div>
       </div>
     </form>
   );
