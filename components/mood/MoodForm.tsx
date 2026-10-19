@@ -44,7 +44,7 @@ export function MoodForm() {
         <fieldset key={i} className="card flex flex-col gap-3">
           <legend className="sr-only">Question {i + 1}</legend>
           <p className="text-lg font-medium">{QUESTIONS[i]}</p>
-          {i === 8 && <p className="text-sm text-ink-soft">If you answer anything but “Not at all”, your care team and anyone you share urgent alerts with will be told you need support. Not your answers.</p>}
+          {i === 8 && <p className="text-sm text-ink-soft">If you answer anything but “Not at all”, we treat it as an urgent warning sign. People you share urgent alerts with are told you need help now. People you share check-ins with, like your care team, also see that you’ve had thoughts of hurting yourself. Your other answers stay in your mood check.</p>}
           <div className="grid gap-2 sm:grid-cols-4">
             {ANSWERS.map((label, v) => (
               <label key={v} className="btn-quiet min-h-12 cursor-pointer text-center has-[:checked]:border-brand has-[:checked]:bg-brand-soft has-[:checked]:text-brand">

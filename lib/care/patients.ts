@@ -30,7 +30,7 @@ export async function myPatients(db: SupabaseClient, clinicianId: string, now = 
   const ids = rows.map((l) => l.mother_id);
   if (!ids.length) return [];
   const [{ data: checkins }, { data: alerts }, { data: dates }, { data: moods }] = await Promise.all([
-    db.from("checkins").select("mother_id, created_at, level, systolic, diastolic").in("mother_id", ids).order("created_at", { ascending: false }).limit(1000),
+    db.from("checkins").select("mother_id, created_at, level, systolic, diastolic").in("mother_id", ids).eq("subject", "mother").order("created_at", { ascending: false }).limit(1000),
     db.from("alerts").select("mother_id, level").in("mother_id", ids).is("seen_at", null),
     db.from("mothers").select("id, due_date, birth_date").in("id", ids),
     db.from("moods").select("mother_id, created_at, level").in("mother_id", ids).order("created_at", { ascending: false }).limit(500),

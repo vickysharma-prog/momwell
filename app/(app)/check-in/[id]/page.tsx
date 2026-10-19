@@ -9,13 +9,13 @@ import type { Level, Reason } from "@/lib/safety/engine";
 export default async function CheckInResult({ params }: PageProps<"/check-in/[id]">) {
   const { id } = await params;
   const { db, me } = await requireMe();
-  const { data } = await db.from("checkins").select("id, mother_id, level, reasons, note, source, engine_version, systolic").eq("id", id).maybeSingle();
+  const { data } = await db.from("checkins").select("id, mother_id, level, reasons, note, source, subject, engine_version, systolic").eq("id", id).maybeSingle();
   if (!data) notFound();
   const reasons = data.reasons as Reason[];
 
   return (
     <AppPage className="max-w-2xl">
-      <ResultView result={{ level: data.level, reasons, crisis: reasons.some((r) => r.id === "harm_thoughts"), noteUnread: Boolean(data.note) }} voice={data.mother_id === me.id} />
+      <ResultView result={{ level: data.level, reasons, crisis: reasons.some((r) => r.id === "harm_thoughts"), noteUnread: Boolean(data.note) }} voice={data.mother_id === me.id} baby={data.subject === "baby"} />
       {data.note && (
         <section className="card">
           <p className="muted mb-1 text-sm">{data.mother_id === me.id ? "You wrote" : "She wrote"}</p>

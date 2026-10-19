@@ -65,3 +65,14 @@ export async function cleanOldFamilies() {
   }
   return removed;
 }
+
+/** The demo family's mother, for someone signed in as any member of that family; null outside a demo. */
+export async function demoMother(personId: string) {
+  const admin = supabaseAdmin();
+  const { data } = await admin.from("profiles").select("demo_family").eq("id", personId).single();
+  if (!data?.demo_family) return null;
+  const { data: mom } = await admin.from("profiles").select("id").eq("demo_family", data.demo_family).eq("role", "mother").single();
+  if (!mom) return null;
+  const { data: dates } = await admin.from("mothers").select("birth_date").eq("id", mom.id).maybeSingle();
+  return { id: mom.id, born: Boolean(dates?.birth_date) };
+}

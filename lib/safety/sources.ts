@@ -23,6 +23,16 @@ export const SOURCES = {
     checked: "2026-10-20",
   },
   phq: { title: "Patient Health Questionnaire (PHQ-2 and PHQ-9), free to use", url: "https://www.phqscreeners.com/", checked: "2026-10-20" },
+  aapFever: {
+    title: "AAP HealthyChildren: Fever, when to call the pediatrician (2 Dec 2022)",
+    url: "https://www.healthychildren.org/English/health-issues/conditions/fever/pages/When-to-Call-the-Pediatrician.aspx",
+    checked: "2026-10-20",
+  },
+  childrensEmergency: {
+    title: "Children's Hospital Colorado: Emergency symptoms not to miss (Barton Schmitt MD, FAAP)",
+    url: "https://www.childrenscolorado.org/conditions-and-advice/conditions-and-symptoms/special-topics/emergency-symptoms-not-to-miss/",
+    checked: "2026-10-20",
+  },
   lifeline988: { title: "988 Suicide & Crisis Lifeline", url: "https://988lifeline.org/", checked: "2026-10-19" },
   maternalHotline: {
     title: "HRSA National Maternal Mental Health Hotline",

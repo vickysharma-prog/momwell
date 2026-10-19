@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { evaluateBaby } from "./baby.ts";
 import { evaluate } from "./engine.ts";
 import { trail } from "./trail.ts";
 
@@ -42,4 +43,13 @@ test("a mood check-in says it came from the PHQ-9 thoughts-of-harm question, and
   const first = from({ signs: ["harm_thoughts"] }, { source: "mood" })[0];
   assert.match(first.detail, /PHQ-9/);
   assert.match(first.detail, /stay in her mood check/);
+});
+
+test("a baby check-in says so, calls 911 by name, and its detail follows baby updates", () => {
+  const steps = trail({ source: "tap", subject: "baby", engineVersion: "baby-x", level: "urgent", reasons: evaluateBaby({ signs: ["baby_blue"] }, 10).reasons, hadBp: false, told: ["Sam (partner)"], seenBy: null });
+  assert.equal(steps[0].title, "About her baby");
+  assert.ok(steps.some((s) => s.title === "Rule: call 911"));
+  assert.match(steps.find((s) => s.title === "Who was told")!.detail, /baby updates/);
+  const watch = trail({ source: "tap", subject: "baby", engineVersion: "baby-x", level: "none", reasons: evaluateBaby({ signs: [], temp: { value: 101, unit: "F" } }, 200).reasons, hadBp: false, told: [], seenBy: null });
+  assert.ok(watch.some((s) => s.title === "Rule: when to call"));
 });

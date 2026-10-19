@@ -10,7 +10,7 @@ import { stageFrom, weeksPregnant } from "@/lib/safety/stage";
 
 type Linked = { mother_id: string; person_id: string; kind: string; relation: string; partner: boolean; sees: Scope[]; other: { name: string } };
 type HelpAsk = { id: string; kind: AskKind; needed_on: string; taken_by: string | null; mom: { name: string } | null; taker: { name: string } | null };
-type CheckIn = { id: string; created_at: string; level: "urgent" | "call_doctor" | "check" | "none" };
+type CheckIn = { id: string; created_at: string; level: "urgent" | "call_doctor" | "check" | "none"; subject: "mother" | "baby" };
 
 const LEVEL: Record<CheckIn["level"], { label: string; dot: string }> = {
   urgent: { label: "Warning sign", dot: "bg-alarm" },
@@ -32,8 +32,8 @@ export default async function Today() {
       ? db.from("links").select("*, other:profiles!links_person_id_fkey(name)").eq("mother_id", me.id).order("created_at")
       : db.from("links").select("*, other:profiles!links_mother_id_fkey(name)").eq("person_id", me.id).order("created_at"),
     // Row-level security returns only alerts for moms who share alerts with this person (or her own).
-    db.from("alerts").select("id, mother_id, checkin_id, level, created_at, seen_at, mother:profiles!alerts_mother_id_fkey(name), seer:profiles!alerts_seen_by_fkey(name)").order("seen_at", { ascending: false, nullsFirst: true }).order("created_at", { ascending: false }).limit(20),
-    mine ? db.from("checkins").select("id, created_at, level").eq("mother_id", me.id).order("created_at", { ascending: false }).limit(6) : Promise.resolve({ data: [] }),
+    db.from("alerts").select("id, mother_id, checkin_id, level, created_at, seen_at, mother:profiles!alerts_mother_id_fkey(name), seer:profiles!alerts_seen_by_fkey(name), checkin:checkins(subject)").order("seen_at", { ascending: false, nullsFirst: true }).order("created_at", { ascending: false }).limit(20),
+    mine ? db.from("checkins").select("id, created_at, level, subject").eq("mother_id", me.id).order("created_at", { ascending: false }).limit(6) : Promise.resolve({ data: [] }),
     mine ? db.from("mothers").select("due_date, birth_date").eq("id", me.id).maybeSingle() : Promise.resolve({ data: null }),
     // What she asked her circle for, from today on (row-level security: hers, or moms who share ways to help).
     db.from("asks").select("id, kind, needed_on, taken_by, mom:profiles!asks_mother_id_fkey(name), taker:profiles!asks_taken_by_fkey(name)").eq("done", false).gte("needed_on", new Date().toISOString().slice(0, 10)).order("needed_on").limit(6),
@@ -62,8 +62,8 @@ export default async function Today() {
   const recent = (checkins ?? []) as CheckIn[];
   const today = new Date();
   const stage = stageFrom(dates ?? {}, today);
-  const doneToday = recent[0] && new Date(recent[0].created_at).toDateString() === today.toDateString();
-  const canOpen = people.filter((p) => p.sees.includes("checkins")).map((p) => p.mother_id);
+  const lastMine = recent.find((c) => c.subject === "mother");
+  const doneToday = lastMine && new Date(lastMine.created_at).toDateString() === today.toDateString();
 
   return (
     <AppPage>
@@ -87,12 +87,21 @@ export default async function Today() {
               <div aria-hidden="true" className="absolute -top-16 -right-16 size-56 rounded-full bg-white/8" />
               <p className="relative text-sm font-semibold tracking-widest uppercase opacity-80">Today’s check-in</p>
               <p className="relative mt-3 font-display text-3xl leading-tight sm:text-4xl">{doneToday ? "You’ve checked in today. Thank you." : "How are you feeling today?"}</p>
-              <p className="relative mt-2 opacity-85">{doneToday ? `${LEVEL[recent[0].level].label} · ${day(recent[0].created_at)}` : "Thirty seconds. Tap what’s true."}</p>
+              <p className="relative mt-2 opacity-85">{doneToday ? `${LEVEL[lastMine.level].label} · ${day(lastMine.created_at)}` : "Thirty seconds. Tap what’s true."}</p>
               <Link href="/check-in" className="relative mt-6 inline-flex h-14 items-center rounded-full bg-paper-raised px-8 text-lg font-semibold text-brand transition active:scale-[0.98]">
                 {doneToday ? "Check in again" : "Check in today"}
               </Link>
             </section>
 
+            {stage.kind === "after_birth" && (
+              <Link href="/baby" className="card flex items-center justify-between gap-4 transition-colors hover:border-brand">
+                <span className="flex flex-col gap-1">
+                  <span className="text-xl font-semibold">Check on your baby</span>
+                  <span className="text-ink-soft">The warning signs for your baby’s age, and a temperature if you took one.</span>
+                </span>
+                <span aria-hidden="true" className="text-2xl text-brand">→</span>
+              </Link>
+            )}
             {moodDue(lastMood?.created_at ?? null, today) && (
               <Link href="/mood" className="card flex items-center justify-between gap-4 transition-colors hover:border-brand">
                 <span className="flex flex-col gap-1">
@@ -113,7 +122,7 @@ export default async function Today() {
                     <li key={c.id}>
                       <Link href={`/check-in/${c.id}`} className="flex items-center gap-3 px-5 py-4 transition-colors hover:bg-paper">
                         <span className={`size-2.5 rounded-full ${LEVEL[c.level].dot}`} aria-hidden="true" />
-                        <span className="font-medium">{LEVEL[c.level].label}</span>
+                        <span className="font-medium">{c.subject === "baby" ? `Baby: ${LEVEL[c.level].label.toLowerCase()}` : LEVEL[c.level].label}</span>
                         <span className="ml-auto text-sm text-ink-soft">{day(c.created_at)}</span>
                       </Link>
                     </li>
@@ -124,7 +133,7 @@ export default async function Today() {
           </div>
 
           <div className="flex flex-col gap-6">
-            {(alerts ?? []).length > 0 && <AlertList alerts={alerts as unknown as Alert[]} role={me.role} canOpen={canOpen} />}
+            {(alerts ?? []).length > 0 && <AlertList alerts={alerts as unknown as Alert[]} role={me.role} />}
             {helpCard}
             <section className="card flex flex-col gap-4" aria-label="Your people">
               <div className="flex items-center justify-between">
@@ -152,7 +161,7 @@ export default async function Today() {
       ) : (
         <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
           {(alerts ?? []).length > 0 ? (
-            <AlertList alerts={alerts as unknown as Alert[]} role={me.role} canOpen={canOpen} />
+            <AlertList alerts={alerts as unknown as Alert[]} role={me.role} />
           ) : (
             <section className="rounded-[32px] bg-brand-soft p-8">
               <h2 className="text-2xl">No alerts</h2>

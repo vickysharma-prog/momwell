@@ -2,7 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Level, Reason } from "@/lib/safety/engine";
 import { trail, type CheckInSource } from "@/lib/safety/trail";
 
-type CheckIn = { id: string; mother_id: string; source: CheckInSource; engine_version: string; level: Level; reasons: Reason[]; systolic: number | null };
+type CheckIn = { id: string; mother_id: string; source: CheckInSource; subject?: "mother" | "baby"; engine_version: string; level: Level; reasons: Reason[]; systolic: number | null };
 
 // "How this was decided", opened on demand: what she said, the rules that fired with their sources, who was told
 // and whether it was seen. Read under row-level security, so each viewer sees only what they may.
@@ -18,7 +18,7 @@ export async function HowDecided({ db, checkin, open = false }: { db: SupabaseCl
     .filter((l) => l.sees.includes("alerts") && l.other)
     .map((l) => `${l.other!.name} (${l.partner ? "partner" : l.relation || (l.kind === "care_team" ? "care team" : "circle")})`);
   const a = alert as unknown as { seen_at: string | null; seer: { name: string } | null } | null;
-  const steps = trail({ source: checkin.source, engineVersion: checkin.engine_version, level: checkin.level, reasons: checkin.reasons, hadBp: Boolean(checkin.systolic), told, seenBy: a?.seen_at ? (a.seer?.name ?? "Her care team") : null });
+  const steps = trail({ source: checkin.source, subject: checkin.subject, engineVersion: checkin.engine_version, level: checkin.level, reasons: checkin.reasons, hadBp: Boolean(checkin.systolic), told, seenBy: a?.seen_at ? (a.seer?.name ?? "Her care team") : null });
 
   return (
     <details open={open} className="group rounded-3xl border border-line bg-paper-raised">

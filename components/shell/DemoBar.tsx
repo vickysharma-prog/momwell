@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { switchDemo } from "@/lib/demo/actions";
+import { setDemoBorn, switchDemo } from "@/lib/demo/actions";
 import type { Role } from "@/lib/people/signup";
 
 const WHO: { role: Role; name: string; label: string }[] = [
@@ -16,7 +16,7 @@ const NEXT: Record<Role, { text: string; href: string; cta: string }> = {
 };
 
 // Shown only inside a demo family: who you're seeing Momwell as, a one-click switch, and the next thing to try.
-export function DemoBar({ role }: { role: Role }) {
+export function DemoBar({ role, born }: { role: Role; born: boolean }) {
   const next = NEXT[role];
   return (
     <div className="border-b border-line bg-brand-soft print:hidden">
@@ -32,7 +32,16 @@ export function DemoBar({ role }: { role: Role }) {
             </form>
           ))}
         </div>
-        <span className="hidden text-sm text-ink-soft lg:inline">{next.text}</span>
+        <div className="flex gap-1 rounded-full bg-paper-raised p-1" role="group" aria-label="Where Maya is">
+          {[false, true].map((b) => (
+            <form key={String(b)} action={setDemoBorn.bind(null, b)}>
+              <button aria-pressed={b === born} className={`rounded-full px-3 py-1.5 text-sm font-medium transition ${b === born ? "bg-brand text-on-brand" : "text-ink-soft hover:text-ink"}`}>
+                {b ? "6 weeks after birth" : "27 weeks"}
+              </button>
+            </form>
+          ))}
+        </div>
+        <span className="hidden text-sm text-ink-soft xl:inline">{next.text}</span>
         <Link href={next.href} className="ml-auto text-sm font-semibold text-brand underline underline-offset-4">
           {next.cta}
         </Link>

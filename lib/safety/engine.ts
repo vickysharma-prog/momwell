@@ -30,15 +30,16 @@ export const ACTION: Record<Level, string> = {
 export const NOTE_UNREAD =
   "We checked the boxes you tapped, not what you wrote. If anything you wrote is on the list, go back and tap it. If you're not sure about something, call your doctor.";
 
-const toF = (t: NonNullable<Reading["temp"]>) => (t.unit === "F" ? t.value : (t.value * 9) / 5 + 32);
+export const toF = (t: NonNullable<Reading["temp"]>) => (t.unit === "F" ? t.value : (t.value * 9) / 5 + 32);
+// A °C number entered as °F (37.5 "°F") is a plausible body temperature in the wrong unit: ask, don't guess.
+export const plausibleTemp = ({ value, unit }: NonNullable<Reading["temp"]>) => Number.isFinite(value) && (unit === "F" ? value >= 90 && value <= 110 : value >= 32 && value <= 43.5);
+// Rounded to a tenth so 38°C (100.4°F exactly) isn't missed by float error.
+export const isFever = (t: NonNullable<Reading["temp"]>) => Math.round(toF(t) * 10) >= 1004;
 
 function temperature(temp: NonNullable<Reading["temp"]>): Reason | null {
   const { value, unit } = temp;
-  // A °C number entered as °F (37.5 "°F") is a plausible body temperature in the wrong unit: ask, don't guess.
-  const plausible = unit === "F" ? value >= 90 && value <= 110 : value >= 32 && value <= 43.5;
-  if (!Number.isFinite(value) || !plausible) return { id: "temp_check", text: `${value}°${unit} doesn't look like a body temperature.`, level: "check", source: SIGNS_SOURCE };
-  // Rounded to a tenth so 38°C (100.4°F exactly) isn't missed by float error.
-  if (Math.round(toF(temp) * 10) >= 1004) return { id: "fever", text: `Your temperature is ${value}°${unit}. A fever of 100.4°F (38°C) or higher is a warning sign.`, level: "urgent", source: SIGNS_SOURCE };
+  if (!plausibleTemp(temp)) return { id: "temp_check", text: `${value}°${unit} doesn't look like a body temperature.`, level: "check", source: SIGNS_SOURCE };
+  if (isFever(temp)) return { id: "fever", text: `Your temperature is ${value}°${unit}. A fever of 100.4°F (38°C) or higher is a warning sign.`, level: "urgent", source: SIGNS_SOURCE };
   return null;
 }
 

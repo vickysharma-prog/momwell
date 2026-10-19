@@ -1,11 +1,12 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { requireMe } from "@/lib/people/me";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { supabaseServer } from "@/lib/supabase/server";
-import { createDemoFamily, hashIp, signInToken, underLimit } from "./create";
+import { createDemoFamily, demoMother, hashIp, signInToken, underLimit } from "./create";
 import type { Member } from "./family";
 
 export type DemoState = { error?: string } | undefined;
@@ -39,4 +40,15 @@ export async function switchDemo(role: keyof typeof MEMBER) {
   if (!data?.demo_family || !(role in MEMBER)) redirect("/home");
   await signInAs(data.demo_family, MEMBER[role]);
   redirect("/home?tour=1");
+}
+
+// Move the demo family's story on to six weeks after the birth, or back to 27 weeks pregnant. Only her own family.
+export async function setDemoBorn(born: boolean) {
+  const { me } = await requireMe();
+  const mom = await demoMother(me.id);
+  if (!mom) redirect("/home");
+  const birth = born ? new Date(Date.now() - 42 * 86_400_000).toISOString().slice(0, 10) : null;
+  await supabaseAdmin().from("mothers").update({ birth_date: birth, updated_at: new Date().toISOString() }).eq("id", mom.id);
+  revalidatePath("/", "layout");
+  redirect(born && me.role === "mother" ? "/baby" : "/home");
 }

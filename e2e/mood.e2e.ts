@@ -51,7 +51,7 @@ test("a positive PHQ-2 opens all nine; 11 says talk to her doctor and lists her 
   await answer([2, 1]);
   await page.click("main form button.btn"); // A few more questions
   await shows("Thoughts that you would be better off dead");
-  await shows("will be told you need support");
+  await shows("we treat it as an urgent warning sign");
   await answer([2, 2, 1, 2, 1, 1, 1, 1, 0]);
   await page.click("main form button.btn");
   await shows("talking with your doctor or midwife this week");

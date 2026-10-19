@@ -7,14 +7,14 @@ import { PrintButton } from "@/components/care/PrintButton";
 import { markAllSeen } from "@/lib/care/actions";
 import { stageLabel } from "@/lib/care/patients";
 import { statusOf, STATUS } from "@/lib/care/triage";
-import { aboutHer, LEVEL_FOR_TEAM } from "@/lib/care/voice";
+import { aboutHer, LEVEL_FOR_TEAM, LEVEL_FOR_TEAM_BABY } from "@/lib/care/voice";
 import { requireMe } from "@/lib/people/me";
 import type { Reason } from "@/lib/safety/engine";
 import { band, QUESTIONS, type MoodLevel } from "@/lib/safety/mood";
 import type { CheckInSource } from "@/lib/safety/trail";
 
 type Mood = { id: string; created_at: string; kind: "phq2" | "phq9"; answers: number[]; score: number; level: MoodLevel };
-type CheckIn = { id: string; source: CheckInSource; engine_version: string; created_at: string; level: keyof typeof LEVEL_FOR_TEAM; systolic: number | null; diastolic: number | null; temp_value: number | null; temp_unit: string | null; note: string; reasons: Reason[] };
+type CheckIn = { id: string; source: CheckInSource; subject: "mother" | "baby"; engine_version: string; created_at: string; level: keyof typeof LEVEL_FOR_TEAM; systolic: number | null; diastolic: number | null; temp_value: number | null; temp_unit: string | null; note: string; reasons: Reason[] };
 
 const DOT: Record<string, string> = { urgent: "bg-alarm", call_doctor: "bg-honey", check: "bg-line", none: "bg-brand" };
 const when = (iso: string) => new Date(iso).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
@@ -29,17 +29,18 @@ export default async function PatientPage({ params }: PageProps<"/patients/[id]"
   const [{ data: profile }, { data: dates }, { data: checkins }, { data: alerts }, { data: moodRows }] = await Promise.all([
     db.from("profiles").select("name").eq("id", id).maybeSingle(),
     db.from("mothers").select("due_date, birth_date").eq("id", id).maybeSingle(),
-    db.from("checkins").select("id, created_at, level, systolic, diastolic, temp_value, temp_unit, note, reasons, source, engine_version").eq("mother_id", id).order("created_at", { ascending: false }).limit(60),
+    db.from("checkins").select("id, created_at, level, systolic, diastolic, temp_value, temp_unit, note, reasons, source, subject, engine_version").eq("mother_id", id).order("created_at", { ascending: false }).limit(60),
     db.from("alerts").select("id, level, seen_at").eq("mother_id", id).is("seen_at", null),
     db.from("moods").select("id, created_at, kind, answers, score, level").eq("mother_id", id).order("created_at", { ascending: false }).limit(12),
   ]);
   const moods = (moodRows ?? []) as Mood[];
   if (!profile) notFound();
   const list = (checkins ?? []) as CheckIn[];
+  const hers = list.filter((c) => c.subject === "mother");
   const now = new Date();
   const open = alerts ?? [];
   const { status, reason } = statusOf(
-    { unseenUrgent: open.filter((a) => a.level === "urgent").length, unseenCall: open.filter((a) => a.level === "call_doctor").length, lastCheckIn: list[0]?.created_at ?? null, lastLevel: list[0]?.level ?? null, lastMood: moods[0] ? { level: moods[0].level, at: moods[0].created_at } : null },
+    { unseenUrgent: open.filter((a) => a.level === "urgent").length, unseenCall: open.filter((a) => a.level === "call_doctor").length, lastCheckIn: hers[0]?.created_at ?? null, lastLevel: hers[0]?.level ?? null, lastMood: moods[0] ? { level: moods[0].level, at: moods[0].created_at } : null },
     now,
   );
   const bp = list.filter((c) => c.systolic && c.diastolic).map((c) => ({ at: c.created_at, systolic: c.systolic!, diastolic: c.diastolic! }));
@@ -92,7 +93,7 @@ export default async function PatientPage({ params }: PageProps<"/patients/[id]"
           <ul className="flex flex-col gap-1 border-t border-line pt-4">
             {warnings.map((c) => (
               <li key={c.id} className="text-sm">
-                <span className="font-semibold">{when(c.created_at)}:</span> {c.reasons.map((r) => aboutHer(r.text)).join(" ")}
+                <span className="font-semibold">{when(c.created_at)}{c.subject === "baby" ? ", baby" : ""}:</span> {c.reasons.map((r) => aboutHer(r.text)).join(" ")}
               </li>
             ))}
           </ul>
@@ -156,7 +157,7 @@ export default async function PatientPage({ params }: PageProps<"/patients/[id]"
             <li key={c.id} className="flex flex-col gap-2 px-6 py-5">
               <div className="flex flex-wrap items-center gap-3">
                 <span className={`size-2.5 rounded-full ${DOT[c.level]}`} aria-hidden="true" />
-                <span className="font-semibold">{LEVEL_FOR_TEAM[c.level]}</span>
+                <span className="font-semibold">{(c.subject === "baby" ? LEVEL_FOR_TEAM_BABY : LEVEL_FOR_TEAM)[c.level]}</span>
                 <span className="ml-auto text-sm text-ink-soft">{when(c.created_at)}</span>
               </div>
               {c.reasons.map((r) => (
