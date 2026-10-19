@@ -20,6 +20,7 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // Pages only: skip Next internals and static files.
-  matcher: ["/((?!_next/|favicon.ico|.*\.[a-z0-9]+$).*)"],
+  // Pages only: skip Next internals, static files and the agent's routes (the agent checks the session itself).
+  // The backslash is doubled: a single one vanishes in a JS string and the pattern then skips almost every path.
+  matcher: ["/((?!_next/|eve/|favicon.ico|.*\\.[a-z0-9]+$).*)"],
 };

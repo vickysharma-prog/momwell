@@ -22,13 +22,13 @@ export async function createInvite(form: FormData) {
   const link = kind === "circle" ? ({ kind, partner } as const) : ({ kind } as const);
   const { error } = await db.from("invites").insert({ from_id: me.id, kind, relation: input.relation, partner, sees: defaultSees(link) });
   if (error) throw new Error("Couldn't create the invite");
-  revalidatePath("/home");
+  revalidatePath("/", "layout");
 }
 
 export async function cancelInvite(token: string) {
   const { db } = await requireMe();
   await db.from("invites").delete().eq("token", token);
-  revalidatePath("/home");
+  revalidatePath("/", "layout");
 }
 
 export async function acceptInvite(token: string) {
@@ -42,12 +42,12 @@ export async function acceptInvite(token: string) {
 export async function removeLink(motherId: string, personId: string) {
   const { db } = await requireMe();
   await db.from("links").delete().eq("mother_id", motherId).eq("person_id", personId);
-  revalidatePath("/home");
+  revalidatePath("/", "layout");
 }
 
 export async function setSees(personId: string, form: FormData) {
   const { db, me } = await requireMe();
   const sees = SCOPES.filter((s) => form.get(s) === "on");
   await db.from("links").update({ sees }).eq("mother_id", me.id).eq("person_id", personId);
-  revalidatePath("/home");
+  revalidatePath("/", "layout");
 }
