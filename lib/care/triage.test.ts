@@ -41,3 +41,11 @@ test("the queue: urgent, call, quiet, new, clear; the longest waiting first with
   ).map((p) => p.name);
   assert.deepEqual(order, ["Urgent older", "Urgent recent", "Call", "Quiet", "New", "Clear"]);
 });
+
+test("a mood check that suggests a talk puts her in call-her for two weeks, after unseen alerts", () => {
+  assert.deepEqual(statusOf({ ...base, lastMood: { level: "call_doctor", at: ago(1) } }, now), { status: "call", reason: "Mood check suggests a talk (PHQ-9 of 10 or more)" });
+  assert.equal(statusOf({ ...base, lastMood: { level: "urgent", at: ago(0) } }, now).reason, "Mood check: thoughts of self-harm");
+  assert.equal(statusOf({ ...base, unseenUrgent: 1, lastMood: { level: "call_doctor", at: ago(1) } }, now).status, "urgent");
+  assert.equal(statusOf({ ...base, lastMood: { level: "call_doctor", at: ago(14) } }, now).status, "clear");
+  assert.equal(statusOf({ ...base, lastMood: { level: "none", at: ago(1) } }, now).status, "clear");
+});

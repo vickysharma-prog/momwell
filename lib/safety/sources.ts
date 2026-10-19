@@ -17,6 +17,12 @@ export const SOURCES = {
     url: "https://health.nih.gov/health-topics-a-z/preeclampsia-eclampsia",
     checked: "2026-10-19",
   },
+  acogPerinatalMentalHealth: {
+    title: "ACOG Clinical Practice Guideline No. 4: Screening and diagnosis of mental health conditions during pregnancy and postpartum (2023)",
+    url: "https://www.acog.org/clinical/clinical-guidance/clinical-practice-guideline/articles/2023/06/screening-and-diagnosis-of-mental-health-conditions-during-pregnancy-and-postpartum",
+    checked: "2026-10-20",
+  },
+  phq: { title: "Patient Health Questionnaire (PHQ-2 and PHQ-9), free to use", url: "https://www.phqscreeners.com/", checked: "2026-10-20" },
   lifeline988: { title: "988 Suicide & Crisis Lifeline", url: "https://988lifeline.org/", checked: "2026-10-19" },
   maternalHotline: {
     title: "HRSA National Maternal Mental Health Hotline",

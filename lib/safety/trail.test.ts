@@ -37,3 +37,9 @@ test("a clear day has no alert steps", () => {
   assert.ok(steps.some((s) => s.title === "No rule fired"));
   assert.ok(!steps.some((s) => s.title === "Who was told"));
 });
+
+test("a mood check-in says it came from the PHQ-9 thoughts-of-harm question, and nothing else of her answers", () => {
+  const first = from({ signs: ["harm_thoughts"] }, { source: "mood" })[0];
+  assert.match(first.detail, /PHQ-9/);
+  assert.match(first.detail, /stay in her mood check/);
+});

@@ -10,8 +10,11 @@ import { statusOf, STATUS } from "@/lib/care/triage";
 import { aboutHer, LEVEL_FOR_TEAM } from "@/lib/care/voice";
 import { requireMe } from "@/lib/people/me";
 import type { Reason } from "@/lib/safety/engine";
+import { band, QUESTIONS, type MoodLevel } from "@/lib/safety/mood";
+import type { CheckInSource } from "@/lib/safety/trail";
 
-type CheckIn = { id: string; source: "tap" | "talk"; engine_version: string; created_at: string; level: keyof typeof LEVEL_FOR_TEAM; systolic: number | null; diastolic: number | null; temp_value: number | null; temp_unit: string | null; note: string; reasons: Reason[] };
+type Mood = { id: string; created_at: string; kind: "phq2" | "phq9"; answers: number[]; score: number; level: MoodLevel };
+type CheckIn = { id: string; source: CheckInSource; engine_version: string; created_at: string; level: keyof typeof LEVEL_FOR_TEAM; systolic: number | null; diastolic: number | null; temp_value: number | null; temp_unit: string | null; note: string; reasons: Reason[] };
 
 const DOT: Record<string, string> = { urgent: "bg-alarm", call_doctor: "bg-honey", check: "bg-line", none: "bg-brand" };
 const when = (iso: string) => new Date(iso).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
@@ -23,18 +26,20 @@ export default async function PatientPage({ params }: PageProps<"/patients/[id]"
   const { db, me } = await requireMe();
   if (me.role !== "care_team") redirect("/home");
 
-  const [{ data: profile }, { data: dates }, { data: checkins }, { data: alerts }] = await Promise.all([
+  const [{ data: profile }, { data: dates }, { data: checkins }, { data: alerts }, { data: moodRows }] = await Promise.all([
     db.from("profiles").select("name").eq("id", id).maybeSingle(),
     db.from("mothers").select("due_date, birth_date").eq("id", id).maybeSingle(),
     db.from("checkins").select("id, created_at, level, systolic, diastolic, temp_value, temp_unit, note, reasons, source, engine_version").eq("mother_id", id).order("created_at", { ascending: false }).limit(60),
     db.from("alerts").select("id, level, seen_at").eq("mother_id", id).is("seen_at", null),
+    db.from("moods").select("id, created_at, kind, answers, score, level").eq("mother_id", id).order("created_at", { ascending: false }).limit(12),
   ]);
+  const moods = (moodRows ?? []) as Mood[];
   if (!profile) notFound();
   const list = (checkins ?? []) as CheckIn[];
   const now = new Date();
   const open = alerts ?? [];
   const { status, reason } = statusOf(
-    { unseenUrgent: open.filter((a) => a.level === "urgent").length, unseenCall: open.filter((a) => a.level === "call_doctor").length, lastCheckIn: list[0]?.created_at ?? null, lastLevel: list[0]?.level ?? null },
+    { unseenUrgent: open.filter((a) => a.level === "urgent").length, unseenCall: open.filter((a) => a.level === "call_doctor").length, lastCheckIn: list[0]?.created_at ?? null, lastLevel: list[0]?.level ?? null, lastMood: moods[0] ? { level: moods[0].level, at: moods[0].created_at } : null },
     now,
   );
   const bp = list.filter((c) => c.systolic && c.diastolic).map((c) => ({ at: c.created_at, systolic: c.systolic!, diastolic: c.diastolic! }));
@@ -105,6 +110,38 @@ export default async function PatientPage({ params }: PageProps<"/patients/[id]"
           </div>
         )}
       </section>
+
+      {moods.length > 0 && (
+        <section className="card flex flex-col gap-4" aria-label="Mood checks">
+          <h2 className="text-2xl">Mood checks</h2>
+          <ul className="flex flex-col divide-y divide-line">
+            {moods.map((m) => (
+              <li key={m.id} className="flex flex-col gap-1 py-3">
+                <div className="flex flex-wrap items-baseline gap-3">
+                  <span className={`size-2.5 rounded-full ${DOT[m.level]}`} aria-hidden="true" />
+                  <span className="font-semibold">
+                    {m.kind === "phq2" ? `PHQ-2: ${m.score} of 6, negative` : `PHQ-9: ${m.score} of 27, ${band(m.score)}`}
+                  </span>
+                  <span className="ml-auto text-sm text-ink-soft">{when(m.created_at)}</span>
+                </div>
+                {m.kind === "phq9" && m.answers[8] > 0 && <p className="text-sm font-medium text-alarm">Item 9 (thoughts of self-harm): {m.answers[8]} of 3</p>}
+                {m.kind === "phq9" && (
+                  <details className="text-sm text-ink-soft">
+                    <summary className="cursor-pointer">Her answers</summary>
+                    <ol className="mt-2 flex flex-col gap-1">
+                      {QUESTIONS.map((q, i) => (
+                        <li key={q}>
+                          {m.answers[i]} · {q}
+                        </li>
+                      ))}
+                    </ol>
+                  </details>
+                )}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       <section className="card flex flex-col gap-4">
         <h2 className="text-2xl">Blood pressure</h2>

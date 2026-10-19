@@ -1,11 +1,12 @@
 // Saving a check-in: the one path for the tap form and for the agent. The engine decides the level here, on the
 // server; an alert goes to her people when it is urgent or a call to her doctor.
 import { evaluate, type CheckIn, type Result } from "../safety/engine.ts";
+import type { CheckInSource } from "../safety/trail.ts";
 import { supabaseAdmin } from "../supabase/admin.ts";
 
 export type Recorded = { result: Result; id: string | null; problem?: "not_saved" | "not_alerted" };
 
-export async function recordCheckIn(motherId: string, input: CheckIn & { note?: string }, source: "tap" | "talk" = "tap"): Promise<Recorded> {
+export async function recordCheckIn(motherId: string, input: CheckIn & { note?: string }, source: CheckInSource = "tap"): Promise<Recorded> {
   const result = evaluate(input);
   const admin = supabaseAdmin();
   const { data, error } = await admin

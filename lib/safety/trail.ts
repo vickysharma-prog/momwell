@@ -2,8 +2,10 @@
 // rules decided, not a model.
 import type { Level, Reason } from "./engine.ts";
 
+export type CheckInSource = "tap" | "talk" | "mood";
+
 export type TrailInput = {
-  source: "tap" | "talk";
+  source: CheckInSource;
   engineVersion: string;
   level: Level;
   reasons: Reason[];
@@ -18,7 +20,9 @@ export function trail(t: TrailInput): Step[] {
   const steps: Step[] = [
     t.source === "talk"
       ? { title: "Her words", detail: "She told Momwell in her own words. The companion only named the warning signs it heard, and may add a sign, never remove one." }
-      : { title: "Her answers", detail: "She tapped what was true from the CDC’s warning-sign list and added her readings." },
+      : t.source === "mood"
+        ? { title: "Her mood check", detail: "On the PHQ-9 she answered that she has had thoughts of hurting herself. Any answer but “not at all” counts as this warning sign. Her other answers stay in her mood check." }
+        : { title: "Her answers", detail: "She tapped what was true from the CDC’s warning-sign list and added her readings." },
     { title: "The rules decided", detail: `Momwell’s rules engine (version ${t.engineVersion}) checked each sign and reading. No AI model made this decision.` },
   ];
   for (const r of t.reasons) steps.push({ title: r.level === "urgent" ? "Rule: get care now" : r.level === "call_doctor" ? "Rule: call the doctor" : "Rule: check the reading", detail: r.text, link: { label: r.source.title, url: r.source.url } });

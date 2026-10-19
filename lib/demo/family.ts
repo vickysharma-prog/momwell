@@ -5,6 +5,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { defaultSees } from "../people/access.ts";
 import { search } from "../qloo/api.ts";
 import { evaluate } from "../safety/engine.ts";
+import { scoreMood } from "../safety/mood.ts";
 
 export const FAMILY = [
   { key: "mom", role: "mother", name: "Maya" },
@@ -54,6 +55,10 @@ export async function fillFamily(admin: SupabaseClient, id: Record<Member, strin
       .select("id")
       .single(),
   );
+  // Her last mood check, 16 days ago (so today's is due): a PHQ-9 of 11 that Dr Lee can see.
+  const answers = [2, 2, 1, 2, 1, 1, 1, 1, 0];
+  const mood = scoreMood(answers);
+  must(await admin.from("moods").insert({ mother_id: id.mom, created_at: new Date(Date.now() - 16 * 86_400_000).toISOString(), kind: mood.kind, answers, score: mood.score, level: mood.level, engine_version: mood.version }));
   // What Maya asked her circle for: Sam has tonight's feeds; dinner is still open.
   const today = new Date().toISOString().slice(0, 10);
   must(

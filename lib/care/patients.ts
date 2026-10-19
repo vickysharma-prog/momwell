@@ -2,6 +2,7 @@
 // each one shares. Facts for the triage queue, worked out in a few queries.
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { stageFrom, weeksPregnant } from "../safety/stage.ts";
+import type { MoodLevel } from "../safety/mood.ts";
 import type { Level } from "./triage.ts";
 
 export type Patient = {
@@ -13,6 +14,7 @@ export type Patient = {
   lastBp: string | null;
   unseenUrgent: number;
   unseenCall: number;
+  lastMood: { level: MoodLevel; at: string } | null;
 };
 
 export function stageLabel(dates: { due_date?: string | null; birth_date?: string | null } | null, now: Date) {
@@ -27,10 +29,11 @@ export async function myPatients(db: SupabaseClient, clinicianId: string, now = 
   const rows = (links ?? []) as unknown as { mother_id: string; other: { name: string } }[];
   const ids = rows.map((l) => l.mother_id);
   if (!ids.length) return [];
-  const [{ data: checkins }, { data: alerts }, { data: dates }] = await Promise.all([
+  const [{ data: checkins }, { data: alerts }, { data: dates }, { data: moods }] = await Promise.all([
     db.from("checkins").select("mother_id, created_at, level, systolic, diastolic").in("mother_id", ids).order("created_at", { ascending: false }).limit(1000),
     db.from("alerts").select("mother_id, level").in("mother_id", ids).is("seen_at", null),
     db.from("mothers").select("id, due_date, birth_date").in("id", ids),
+    db.from("moods").select("mother_id, created_at, level").in("mother_id", ids).order("created_at", { ascending: false }).limit(500),
   ]);
   return rows.map(({ mother_id, other }) => {
     const mine = (checkins ?? []).filter((c) => c.mother_id === mother_id);
@@ -45,6 +48,7 @@ export async function myPatients(db: SupabaseClient, clinicianId: string, now = 
       lastBp: withBp ? `${withBp.systolic}/${withBp.diastolic}` : null,
       unseenUrgent: open.filter((a) => a.level === "urgent").length,
       unseenCall: open.filter((a) => a.level === "call_doctor").length,
+      lastMood: ((m) => (m ? { level: m.level as MoodLevel, at: m.created_at } : null))((moods ?? []).find((m) => m.mother_id === mother_id)),
     };
   });
 }

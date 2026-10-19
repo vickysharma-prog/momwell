@@ -1,3 +1,5 @@
+import { MOOD_EVERY_DAYS, type MoodLevel } from "../safety/mood.ts";
+
 // The care team's patient list as a triage queue: who needs a look first, and why, from plain rules.
 export type Level = "urgent" | "call_doctor" | "check" | "none";
 export type Status = "urgent" | "call" | "quiet" | "clear" | "new";
@@ -7,6 +9,7 @@ export type PatientFacts = {
   unseenCall: number; // "call your doctor" alerts not yet seen
   lastCheckIn: string | null; // ISO time of her latest check-in
   lastLevel: Level | null;
+  lastMood?: { level: MoodLevel; at: string } | null; // her latest mood check, if she shares it
 };
 
 export const QUIET_DAYS = 3;
@@ -24,6 +27,8 @@ export const STATUS: Record<Status, { label: string; tone: "alarm" | "honey" | "
 export function statusOf(p: PatientFacts, now: Date): { status: Status; reason: string } {
   if (p.unseenUrgent > 0) return { status: "urgent", reason: `${p.unseenUrgent} urgent ${p.unseenUrgent === 1 ? "alert" : "alerts"} not yet seen` };
   if (p.unseenCall > 0) return { status: "call", reason: "Blood pressure in the call-her range, not yet seen" };
+  if (p.lastMood && p.lastMood.level !== "none" && now.getTime() - Date.parse(p.lastMood.at) < MOOD_EVERY_DAYS * 86_400_000)
+    return { status: "call", reason: p.lastMood.level === "urgent" ? "Mood check: thoughts of self-harm" : "Mood check suggests a talk (PHQ-9 of 10 or more)" };
   if (!p.lastCheckIn) return { status: "new", reason: "She hasn't checked in yet" };
   const days = Math.floor((now.getTime() - Date.parse(p.lastCheckIn)) / 86_400_000);
   if (days >= QUIET_DAYS) return { status: "quiet", reason: `Last check-in ${days} days ago` };

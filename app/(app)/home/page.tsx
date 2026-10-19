@@ -5,6 +5,7 @@ import { CareHome } from "@/components/care/CareHome";
 import type { Scope } from "@/lib/people/access";
 import { askLine, type AskKind } from "@/lib/help/asks";
 import { requireMe } from "@/lib/people/me";
+import { moodDue } from "@/lib/safety/mood";
 import { stageFrom, weeksPregnant } from "@/lib/safety/stage";
 
 type Linked = { mother_id: string; person_id: string; kind: string; relation: string; partner: boolean; sees: Scope[]; other: { name: string } };
@@ -26,7 +27,7 @@ export default async function Today() {
   const { db, me } = await requireMe();
   if (me.role === "care_team") return <CareHome db={db} me={me} />;
   const mine = me.role === "mother";
-  const [{ data: links }, { data: alerts }, { data: checkins }, { data: dates }, { data: asks }] = await Promise.all([
+  const [{ data: links }, { data: alerts }, { data: checkins }, { data: dates }, { data: asks }, { data: lastMood }] = await Promise.all([
     mine
       ? db.from("links").select("*, other:profiles!links_person_id_fkey(name)").eq("mother_id", me.id).order("created_at")
       : db.from("links").select("*, other:profiles!links_mother_id_fkey(name)").eq("person_id", me.id).order("created_at"),
@@ -36,6 +37,7 @@ export default async function Today() {
     mine ? db.from("mothers").select("due_date, birth_date").eq("id", me.id).maybeSingle() : Promise.resolve({ data: null }),
     // What she asked her circle for, from today on (row-level security: hers, or moms who share ways to help).
     db.from("asks").select("id, kind, needed_on, taken_by, mom:profiles!asks_mother_id_fkey(name), taker:profiles!asks_taken_by_fkey(name)").eq("done", false).gte("needed_on", new Date().toISOString().slice(0, 10)).order("needed_on").limit(6),
+    mine ? db.from("moods").select("created_at").eq("mother_id", me.id).order("created_at", { ascending: false }).limit(1).maybeSingle() : Promise.resolve({ data: null }),
   ]);
   const help = (asks ?? []) as unknown as HelpAsk[];
   const helpCard = help.length > 0 && (
@@ -90,6 +92,16 @@ export default async function Today() {
                 {doneToday ? "Check in again" : "Check in today"}
               </Link>
             </section>
+
+            {moodDue(lastMood?.created_at ?? null, today) && (
+              <Link href="/mood" className="card flex items-center justify-between gap-4 transition-colors hover:border-brand">
+                <span className="flex flex-col gap-1">
+                  <span className="text-xl font-semibold">How have you been feeling?</span>
+                  <span className="text-ink-soft">Your mood check, every two weeks. Two minutes.</span>
+                </span>
+                <span aria-hidden="true" className="text-2xl text-brand">→</span>
+              </Link>
+            )}
 
             <section className="flex flex-col gap-3" aria-label="Recent check-ins">
               <h2 className="text-2xl">Recent check-ins</h2>

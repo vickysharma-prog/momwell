@@ -1,8 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Level, Reason } from "@/lib/safety/engine";
-import { trail } from "@/lib/safety/trail";
+import { trail, type CheckInSource } from "@/lib/safety/trail";
 
-type CheckIn = { id: string; mother_id: string; source: "tap" | "talk"; engine_version: string; level: Level; reasons: Reason[]; systolic: number | null };
+type CheckIn = { id: string; mother_id: string; source: CheckInSource; engine_version: string; level: Level; reasons: Reason[]; systolic: number | null };
 
 // "How this was decided", opened on demand: what she said, the rules that fired with their sources, who was told
 // and whether it was seen. Read under row-level security, so each viewer sees only what they may.
