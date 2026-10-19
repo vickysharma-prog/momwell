@@ -49,3 +49,10 @@ test("a mood check that suggests a talk puts her in call-her for two weeks, afte
   assert.equal(statusOf({ ...base, lastMood: { level: "call_doctor", at: ago(14) } }, now).status, "clear");
   assert.equal(statusOf({ ...base, lastMood: { level: "none", at: ago(1) } }, now).status, "clear");
 });
+
+test("an alert about her baby says so, not blood pressure", () => {
+  assert.equal(statusOf({ ...base, unseenCall: 1, babyCall: 1 }, now).reason, "Baby: told to call the baby’s doctor, not yet seen");
+  assert.equal(statusOf({ ...base, unseenUrgent: 1, babyUrgent: 1 }, now).reason, "Baby: 1 urgent alert not yet seen");
+  assert.equal(statusOf({ ...base, unseenCall: 2, babyCall: 1 }, now).reason, "Blood pressure in the call-her range, not yet seen");
+  assert.equal(statusOf({ ...base, unseenUrgent: 2, babyUrgent: 1 }, now).reason, "2 urgent alerts not yet seen");
+});

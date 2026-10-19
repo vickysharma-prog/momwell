@@ -17,6 +17,7 @@ type Mood = { id: string; created_at: string; kind: "phq2" | "phq9"; answers: nu
 type CheckIn = { id: string; source: CheckInSource; subject: "mother" | "baby"; engine_version: string; created_at: string; level: keyof typeof LEVEL_FOR_TEAM; systolic: number | null; diastolic: number | null; temp_value: number | null; temp_unit: string | null; note: string; reasons: Reason[] };
 
 const DOT: Record<string, string> = { urgent: "bg-alarm", call_doctor: "bg-honey", check: "bg-line", none: "bg-brand" };
+const aboutBaby = (a: { checkin: unknown }) => (a.checkin as { subject?: string } | null)?.subject === "baby";
 const when = (iso: string) => new Date(iso).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
 
 // One patient, for her care team: status, blood pressure over time, every check-in in her words and the rules',
@@ -30,7 +31,7 @@ export default async function PatientPage({ params }: PageProps<"/patients/[id]"
     db.from("profiles").select("name").eq("id", id).maybeSingle(),
     db.from("mothers").select("due_date, birth_date").eq("id", id).maybeSingle(),
     db.from("checkins").select("id, created_at, level, systolic, diastolic, temp_value, temp_unit, note, reasons, source, subject, engine_version").eq("mother_id", id).order("created_at", { ascending: false }).limit(60),
-    db.from("alerts").select("id, level, seen_at").eq("mother_id", id).is("seen_at", null),
+    db.from("alerts").select("id, level, seen_at, checkin:checkins(subject)").eq("mother_id", id).is("seen_at", null),
     db.from("moods").select("id, created_at, kind, answers, score, level").eq("mother_id", id).order("created_at", { ascending: false }).limit(12),
   ]);
   const moods = (moodRows ?? []) as Mood[];
@@ -40,7 +41,7 @@ export default async function PatientPage({ params }: PageProps<"/patients/[id]"
   const now = new Date();
   const open = alerts ?? [];
   const { status, reason } = statusOf(
-    { unseenUrgent: open.filter((a) => a.level === "urgent").length, unseenCall: open.filter((a) => a.level === "call_doctor").length, lastCheckIn: hers[0]?.created_at ?? null, lastLevel: hers[0]?.level ?? null, lastMood: moods[0] ? { level: moods[0].level, at: moods[0].created_at } : null },
+    { unseenUrgent: open.filter((a) => a.level === "urgent").length, unseenCall: open.filter((a) => a.level === "call_doctor").length, babyUrgent: open.filter((a) => a.level === "urgent" && aboutBaby(a)).length, babyCall: open.filter((a) => a.level === "call_doctor" && aboutBaby(a)).length, lastCheckIn: hers[0]?.created_at ?? null, lastLevel: hers[0]?.level ?? null, lastMood: moods[0] ? { level: moods[0].level, at: moods[0].created_at } : null },
     now,
   );
   const bp = list.filter((c) => c.systolic && c.diastolic).map((c) => ({ at: c.created_at, systolic: c.systolic!, diastolic: c.diastolic! }));

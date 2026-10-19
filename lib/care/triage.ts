@@ -7,6 +7,8 @@ export type Status = "urgent" | "call" | "quiet" | "clear" | "new";
 export type PatientFacts = {
   unseenUrgent: number; // urgent alerts nobody on her care team has marked seen
   unseenCall: number; // "call your doctor" alerts not yet seen
+  babyUrgent?: number; // of those, the ones about her baby
+  babyCall?: number;
   lastCheckIn: string | null; // ISO time of her latest check-in
   lastLevel: Level | null;
   lastMood?: { level: MoodLevel; at: string } | null; // her latest mood check, if she shares it
@@ -25,8 +27,9 @@ export const STATUS: Record<Status, { label: string; tone: "alarm" | "honey" | "
 };
 
 export function statusOf(p: PatientFacts, now: Date): { status: Status; reason: string } {
-  if (p.unseenUrgent > 0) return { status: "urgent", reason: `${p.unseenUrgent} urgent ${p.unseenUrgent === 1 ? "alert" : "alerts"} not yet seen` };
-  if (p.unseenCall > 0) return { status: "call", reason: "Blood pressure in the call-her range, not yet seen" };
+  const alerts = (n: number) => `${n} urgent ${n === 1 ? "alert" : "alerts"} not yet seen`;
+  if (p.unseenUrgent > 0) return { status: "urgent", reason: p.babyUrgent === p.unseenUrgent ? `Baby: ${alerts(p.unseenUrgent)}` : alerts(p.unseenUrgent) };
+  if (p.unseenCall > 0) return { status: "call", reason: p.babyCall === p.unseenCall ? "Baby: told to call the baby’s doctor, not yet seen" : "Blood pressure in the call-her range, not yet seen" };
   if (p.lastMood && p.lastMood.level !== "none" && now.getTime() - Date.parse(p.lastMood.at) < MOOD_EVERY_DAYS * 86_400_000)
     return { status: "call", reason: p.lastMood.level === "urgent" ? "Mood check: thoughts of self-harm" : "Mood check suggests a talk (PHQ-9 of 10 or more)" };
   if (!p.lastCheckIn) return { status: "new", reason: "She hasn't checked in yet" };
