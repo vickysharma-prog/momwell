@@ -2,35 +2,8 @@
 // Run: npm run test:integration
 import assert from "node:assert/strict";
 import { after, before, test } from "node:test";
-import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { defaultSees } from "./access.ts";
-
-const url = process.env.SUPABASE_URL!;
-const admin = createClient(url, process.env.SUPABASE_SERVICE_ROLE_KEY!, { auth: { persistSession: false } });
-const anon = () => createClient(url, process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!, { auth: { persistSession: false } });
-
-type Person = { id: string; db: SupabaseClient };
-const made: string[] = [];
-
-async function person(role: "mother" | "circle" | "care_team", name: string): Promise<Person> {
-  const email = `momwell.rls.${role}.${crypto.randomUUID().slice(0, 8)}@example.com`;
-  const password = crypto.randomUUID();
-  const { data, error } = await admin.auth.admin.createUser({ email, password, email_confirm: true });
-  if (error) throw error;
-  made.push(data.user.id);
-  const db = anon();
-  const signIn = await db.auth.signInWithPassword({ email, password });
-  if (signIn.error) throw signIn.error;
-  const { error: e } = await db.from("profiles").insert({ id: data.user.id, role, name });
-  if (e) throw e;
-  return { id: data.user.id, db };
-}
-
-async function invite(from: Person, row: Record<string, unknown>) {
-  const { data, error } = await from.db.from("invites").insert(row).select("token").single();
-  if (error) throw error;
-  return data.token as string;
-}
+import { admin, anon, invite, person, removeAll, type Person } from "./test-people.ts";
 
 let mom: Person, friend: Person, otherMom: Person, doctor: Person;
 
@@ -43,9 +16,7 @@ before(async () => {
   ]);
 });
 
-after(async () => {
-  for (const id of made) await admin.auth.admin.deleteUser(id);
-});
+after(removeAll);
 
 test("a mother's invite links her circle, and only the two of them see it", async () => {
   const token = await invite(mom, { from_id: mom.id, kind: "circle", relation: "sister", sees: defaultSees({ kind: "circle", partner: false }) });
