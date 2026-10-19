@@ -69,7 +69,7 @@ export function AppShell({ role, name, children }: { role: Role; name: string; c
           ))}
         </nav>
         <div className="mt-auto flex items-center gap-3 rounded-2xl border border-line p-3">
-          <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-honey font-semibold text-[#13201f]">{name.slice(0, 1).toUpperCase()}</span>
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-honey font-semibold text-[#1f1a2e]">{name.slice(0, 1).toUpperCase()}</span>
           <span className="flex min-w-0 flex-col">
             <span className="truncate font-medium">{name}</span>
             <span className="text-sm text-ink-soft">{ROLE_LABEL[role]}</span>

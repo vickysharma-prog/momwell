@@ -1,4 +1,4 @@
-// Makes the app icons from the logo: the italic Fraunces m with its honey heart on evergreen. Renders in Chrome so
+// Makes the app icons from the logo: the italic Fraunces m with its honey heart on lavender. Renders in Chrome so
 // the real font is used. 192 and 512 for Android, a maskable 512 with room for round masks, 180 for iPhone, and a
 // 32 favicon without the heart (it blurs that small). Run: node scripts/app-icons.ts
 import puppeteer from "puppeteer-core";
@@ -6,7 +6,7 @@ import puppeteer from "puppeteer-core";
 const HEART = "M12 21C5 15 2 11.5 2 8c0-3 2.5-5 5-5 2 0 4 1.2 5 3 1-1.8 3-3 5-3 2.5 0 5 2 5 5 0 3.5-3 7-10 13z";
 const page = (size: number, { radius, scale, heart }: { radius: number; scale: number; heart: boolean }) => `<html><head>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght,SOFT@1,9..144,500,100&display=block" rel="stylesheet">
-<style>body{margin:0;background:transparent}div{width:${size}px;height:${size}px;border-radius:${radius * size}px;background:#0E4A47;position:relative;display:flex;align-items:center;justify-content:center}
+<style>body{margin:0;background:transparent}div{width:${size}px;height:${size}px;border-radius:${radius * size}px;background:#5B4B8A;position:relative;display:flex;align-items:center;justify-content:center}
 span{font-family:Fraunces;font-style:italic;font-weight:500;font-variation-settings:'SOFT' 100,'opsz' 144;color:#fff;font-size:${0.8 * scale * size}px;line-height:1;padding-bottom:${0.13 * scale * size}px}
 svg{position:absolute;right:${50 - 35 * scale}%;top:${50 - 39 * scale}%;width:${0.23 * scale * size}px;height:${0.23 * scale * size}px}</style></head>
 <body><div><span>m</span>${heart ? `<svg viewBox="0 0 24 24"><path d="${HEART}" fill="#F2B84B"/></svg>` : ""}</div></body></html>`;

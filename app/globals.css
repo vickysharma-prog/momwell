@@ -1,16 +1,16 @@
 @import "tailwindcss";
 
-/* Momwell brand (private/plan.md, 19 Oct): evergreen and honey on linen; night colours for dark and night mode.
+/* Momwell brand (private/plan.md, 19 Oct): lavender and honey on a soft lilac white; night colours for dark mode.
    Red is kept for warnings only. */
 :root,
 [data-theme="light"] {
-  --paper: #f6f4ef;
+  --paper: #f8f6fb;
   --paper-raised: #ffffff;
-  --ink: #13201f;
-  --ink-soft: #4d5e5c;
-  --line: #e4e0d6;
-  --brand: #0e4a47;
-  --brand-soft: #dcebe5;
+  --ink: #1f1a2e;
+  --ink-soft: #5e5872;
+  --line: #e6e1ef;
+  --brand: #5b4b8a;
+  --brand-soft: #ece8f6;
   --on-brand: #ffffff;
   --honey: #f2b84b;
   --accent: var(--brand);
@@ -21,14 +21,14 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --paper: #0c1f1e;
-    --paper-raised: #16302e;
-    --ink: #e7f0ec;
-    --ink-soft: #a9bdb8;
-    --line: #24403d;
-    --brand: #a8d5cb;
-    --brand-soft: #1d3b38;
-    --on-brand: #0c1f1e;
+    --paper: #16131f;
+    --paper-raised: #211c2e;
+    --ink: #eeeaf6;
+    --ink-soft: #b4acc8;
+    --line: #322a44;
+    --brand: #c9bef0;
+    --brand-soft: #2e2742;
+    --on-brand: #16131f;
     --honey: #e9c27a;
     --alarm: #ff8a80;
     --alarm-ink: #ffdad6;

@@ -130,7 +130,7 @@ export default async function Today() {
               <ul className="flex flex-col gap-3">
                 {people.map((p) => (
                   <li key={p.mother_id} className="flex items-center gap-3">
-                    <span className="flex size-10 items-center justify-center rounded-full bg-honey font-semibold text-[#13201f]">{p.other.name.slice(0, 1).toUpperCase()}</span>
+                    <span className="flex size-10 items-center justify-center rounded-full bg-honey font-semibold text-[#1f1a2e]">{p.other.name.slice(0, 1).toUpperCase()}</span>
                     <span className="font-medium">{p.other.name}</span>
                   </li>
                 ))}
