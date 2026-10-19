@@ -52,7 +52,7 @@ export function LandingHeader() {
 // A story in three photographs, each with the moment from the app beside it: alone and worried at night, calm with
 // her people around her, and still watched over after the birth.
 const SCENES = [
-  { photo: PHOTOS.worried, time: "11:40 pm · 33 weeks", title: "“My head won’t stop pounding. Is this normal?”", detail: "She tells Momwell. The CDC’s rules check it with her, right away." },
+  { photo: PHOTOS.worried, time: "2:15 am · 33 weeks", title: "“My head won’t stop pounding. Is this normal?”", detail: "She tells Momwell. The CDC’s rules check it with her, right away." },
   { photo: PHOTOS.nursery, time: "The next morning", title: "Her OB-GYN saw it. Her partner is home.", detail: "One clear step, and the people she chose were told." },
   { photo: PHOTOS.bedside, time: "6 weeks after birth", title: "Still watched over", detail: "Warning signs after birth are checked for the whole first year." },
 ] as const;
