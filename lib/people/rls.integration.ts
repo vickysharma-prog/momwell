@@ -111,3 +111,11 @@ test("the mother removes someone in one click", async () => {
   const { data } = await friend.db.from("profiles").select("id").eq("id", mom.id);
   assert.deepEqual(data, []);
 });
+
+test("an invite link previews who sent it, even signed out, and nothing for a made-up token", async () => {
+  const token = await invite(mom, { from_id: mom.id, kind: "circle", relation: "friend", sees: ["tasks"] });
+  const { data } = await anon().rpc("invite_preview", { t: token });
+  assert.deepEqual(data, [{ from_name: "Test Mother", from_role: "mother", kind: "circle", relation: "friend", partner: false, usable: true }]);
+  const { data: none } = await anon().rpc("invite_preview", { t: crypto.randomUUID() });
+  assert.deepEqual(none, []);
+});
