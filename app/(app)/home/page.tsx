@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Guide } from "@/components/Guide";
 import { AlertList, type Alert } from "@/components/AlertList";
 import { AppPage } from "@/components/AppPage";
 import { CareHome } from "@/components/care/CareHome";
@@ -79,6 +80,7 @@ export default async function Today() {
             : "Here’s how you can help today."}
         </p>
       </header>
+      <Guide line={mine ? "guide_mom" : "guide_partner"} />
 
       {mine ? (
         <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">

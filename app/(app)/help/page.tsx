@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { Guide } from "@/components/Guide";
 import { Suspense } from "react";
 import { AppPage } from "@/components/AppPage";
 import { AskForm } from "@/components/help/AskForm";
@@ -55,6 +56,7 @@ export default async function Help() {
         <h1 className="text-4xl sm:text-5xl">{mine ? "Help from your people" : "How you can help"}</h1>
         <p className="text-lg text-ink-soft">{mine ? "Ask for what would make today easier. Only the people you share ways to help with see it." : "What she asked for. Take one, and she’ll see it’s yours."}</p>
       </header>
+      <Guide line={mine ? "guide_help_mom" : "guide_help_circle"} />
       <div className={`grid items-start gap-6 ${mine ? "lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]" : ""}`}>
         {mine && <AskForm />}
         <section className="flex flex-col gap-3" aria-label="Asks">
@@ -74,13 +76,13 @@ export default async function Help() {
               <div className="flex flex-wrap gap-2">
                 {!mine && !a.taken_by && (
                   <form action={takeAsk.bind(null, a.id)}>
-                    <button className="btn w-auto px-6">I’ll do it</button>
+                    <button className="btn w-auto px-6" data-sound="done">I’ll do it</button>
                   </form>
                 )}
                 {!mine && a.taken_by === me.id && (
                   <>
                     <form action={markDone.bind(null, a.id)}>
-                      <button className="btn w-auto px-6">Done</button>
+                      <button className="btn w-auto px-6" data-sound="done">Done</button>
                     </form>
                     <form action={letGo.bind(null, a.id)}>
                       <button className="btn-quiet">Let go</button>

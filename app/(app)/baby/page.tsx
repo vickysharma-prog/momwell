@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Guide } from "@/components/Guide";
 import { redirect } from "next/navigation";
 import { AppPage } from "@/components/AppPage";
 import { CheckInForm } from "@/components/CheckInForm";
@@ -31,6 +32,7 @@ export default async function Baby() {
         <h1 className="text-4xl sm:text-5xl">Your baby</h1>
         <p className="text-lg text-ink-soft">{age(stage.days)}. Tap anything that’s true right now.</p>
       </header>
+      <Guide line="guide_baby" />
       <CheckInForm baby signs={babySignsFor(stage.days).map(({ id, label }) => ({ id, label }))} />
       <p className="text-sm text-ink-soft">
         From{" "}

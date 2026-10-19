@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { Guide } from "@/components/Guide";
 import { AppPage } from "@/components/AppPage";
 import { MoodForm } from "@/components/mood/MoodForm";
 import { requireMe } from "@/lib/people/me";
@@ -17,6 +18,7 @@ export default async function Mood() {
           minutes.
         </p>
       </header>
+      <Guide line="guide_mood" />
       <MoodForm />
       <p className="text-sm text-ink-soft">
         <a className="underline underline-offset-4" href={SOURCES.phq.url} target="_blank" rel="noreferrer">

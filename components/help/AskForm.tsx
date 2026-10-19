@@ -29,7 +29,7 @@ export function AskForm() {
       </div>
       {state?.error && <p role="alert" className="error">{state.error}</p>}
       {state?.ok && <p role="status" className="font-medium text-brand">Sent to your people.</p>}
-      <button className="btn" disabled={pending}>
+      <button className="btn" disabled={pending} aria-busy={pending} data-sound="done">
         {pending ? "Sending…" : "Ask my people"}
       </button>
     </form>

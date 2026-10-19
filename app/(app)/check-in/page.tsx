@@ -1,4 +1,5 @@
 import { AppPage } from "@/components/AppPage";
+import { Guide } from "@/components/Guide";
 import { redirect } from "next/navigation";
 import { CheckInForm } from "@/components/CheckInForm";
 import { saveDates } from "@/lib/checkin/actions";
@@ -25,6 +26,7 @@ export default async function CheckIn() {
               : "Thirty seconds. Tap what's true."}
         </p>
       </header>
+      <Guide line="guide_checkin" />
 
       {stage.kind === "unknown" && (
         <form action={saveDates} className="card grid gap-4 md:grid-cols-[1fr_1fr_auto] md:items-end">

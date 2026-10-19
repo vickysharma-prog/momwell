@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Guide } from "@/components/Guide";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { AppPage } from "@/components/AppPage";
 import { myPatients } from "@/lib/care/patients";
@@ -36,6 +37,7 @@ export async function CareHome({ db, me }: { db: SupabaseClient; me: { id: strin
           Invite a patient
         </Link>
       </header>
+      <Guide line="guide_doctor" />
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {(["urgent", "call", "quiet", "clear"] as const).map((s) => (

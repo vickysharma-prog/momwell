@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { Guide } from "@/components/Guide";
 import { AppPage } from "@/components/AppPage";
 import { Companion } from "@/components/Companion";
 import { requireMe } from "@/lib/people/me";
@@ -12,6 +13,7 @@ export default async function Talk() {
         <h1 className="text-4xl">Talk to Momwell</h1>
         <p className="text-ink-soft">Warning signs are checked by the CDC’s rules, never guessed. In an emergency, call 911.</p>
       </header>
+      <Guide line="guide_talk" />
       <Companion name={me.name} />
     </AppPage>
   );

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Guide } from "@/components/Guide";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { AppPage } from "@/components/AppPage";
@@ -129,6 +130,7 @@ export default async function ForYou() {
           {ids.length ? "Change what I love" : "Tell us what you love"}
         </Link>
       </header>
+      <Guide line="guide_foryou" />
       {!taste || !ids.length ? (
         <section className="rounded-[32px] bg-brand-soft p-8">
           <h2 className="text-2xl">Start with a few favourites</h2>

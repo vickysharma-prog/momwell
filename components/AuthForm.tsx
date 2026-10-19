@@ -14,7 +14,7 @@ export function AuthForm({ action, submit, children }: { action: (s: FormState, 
           {state.error}
         </p>
       )}
-      <button className="btn mt-2" disabled={pending}>
+      <button className="btn mt-2" disabled={pending} aria-busy={pending}>
         {pending ? "One moment…" : submit}
       </button>
     </form>

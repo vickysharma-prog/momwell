@@ -2,7 +2,7 @@ import Link from "next/link";
 import { BABY_ACTION } from "@/lib/safety/baby";
 import { ACTION, NOTE_UNREAD, type Result } from "@/lib/safety/engine";
 import { CRISIS_LINES } from "@/lib/safety/sources";
-import { lineFor } from "@/lib/voice/lines";
+import { babyLineFor, lineFor } from "@/lib/voice/lines";
 import { Speak } from "./Speak";
 
 // What she sees after a check-in. A warning sign gets a calm, distinct screen with one clear thing to do.
@@ -11,7 +11,7 @@ export function ResultView({ result, voice = true, baby = false }: { result: Pic
   return (
     <section className={`settle flex flex-col gap-5 rounded-3xl p-6 ${alarm ? "bg-[var(--alarm-soft)]" : "card"}`} aria-live="assertive">
       <h2 className="text-3xl font-semibold leading-tight">{baby ? BABY_ACTION[result.level] : alarm ? ACTION[result.level] : result.level === "check" ? "Let’s check that again" : "Thank you for checking in"}</h2>
-      {voice && !baby && <Speak line={lineFor(result)} />}
+      {voice && <Speak line={baby ? babyLineFor(result.level) : lineFor(result)} />}
       {alarm && (
         <a className="btn calm-glow bg-[var(--alarm)]" href="tel:911">
           Call 911

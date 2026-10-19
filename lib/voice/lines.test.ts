@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
 import { test } from "node:test";
-import { LINES, lineFor } from "./lines.ts";
+import { babyLineFor, LINES, lineFor } from "./lines.ts";
 
 test("each result speaks the line that matches its screen", () => {
   assert.equal(lineFor({ level: "urgent", crisis: false, noteUnread: false }), "urgent");
@@ -21,4 +21,11 @@ test("no spoken line names a condition", () => {
 
 test("every line has its recording in the app", () => {
   for (const id of Object.keys(LINES)) assert.ok(existsSync(new URL(`../../public/voice/${id}.mp3`, import.meta.url)), id);
+});
+
+test("a baby result speaks the baby's line", () => {
+  assert.equal(babyLineFor("urgent"), "baby_urgent");
+  assert.equal(babyLineFor("call_doctor"), "baby_call");
+  assert.equal(babyLineFor("none"), "baby_clear");
+  assert.equal(babyLineFor("check"), "check");
 });

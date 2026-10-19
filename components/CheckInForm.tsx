@@ -67,7 +67,7 @@ export function CheckInForm({ signs, baby = false }: { signs: SignOption[]; baby
       {/* Always within reach: held above the tab bar on a phone, under the readings on a larger screen. */}
       <div className="fixed inset-x-5 bottom-[6.5rem] z-20 flex flex-col gap-3 md:static">
         {state?.error && <p role="alert" className="error rounded-2xl bg-paper-raised p-3">{state.error}</p>}
-        <button className="btn shadow-[0_16px_40px_-16px_var(--brand)]" disabled={pending}>
+        <button className="btn shadow-[0_16px_40px_-16px_var(--brand)]" disabled={pending} aria-busy={pending}>
           {pending ? "Checking…" : "Done"}
         </button>
       </div>

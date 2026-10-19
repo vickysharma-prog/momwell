@@ -40,7 +40,7 @@ export function AlertList({ alerts, role }: { alerts: Alert[]; role: Role }) {
             )}
             {role === "care_team" && !a.seen_at && (
               <form action={markSeen.bind(null, a.id)}>
-                <button className="btn-quiet">Seen</button>
+                <button className="btn-quiet" data-sound="done">Seen</button>
               </form>
             )}
           </div>

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useActionState, useState } from "react";
 import { ResultView } from "@/components/ResultView";
+import { Speak } from "@/components/Speak";
 import { saveMood } from "@/lib/mood/actions";
 import { evaluate } from "@/lib/safety/engine";
 import { ANSWERS, MOOD_SAYS, needsFull, QUESTIONS } from "@/lib/safety/mood";
@@ -16,11 +17,12 @@ export function MoodForm() {
   const ready = answers.every((a) => a !== null);
   const goesOn = !full && ready && needsFull(answers as number[]);
 
-  if (state?.level === "urgent") return <ResultView result={evaluate({ signs: ["harm_thoughts"] })} voice={false} />;
+  if (state?.level === "urgent") return <ResultView result={evaluate({ signs: ["harm_thoughts"] })} />;
   if (state?.level)
     return (
       <section className="settle card flex flex-col gap-4" aria-live="polite">
         <h2 className="text-3xl leading-tight">{MOOD_SAYS[state.level]}</h2>
+        <Speak line={state.level === "call_doctor" ? "mood_talk" : "mood_clear"} />
         {state.error && <p className="error">{state.error}</p>}
         {state.level === "call_doctor" && (
           <div className="flex flex-col gap-2 rounded-2xl bg-paper p-4">
@@ -61,7 +63,7 @@ export function MoodForm() {
           A few more questions
         </button>
       ) : (
-        <button className="btn" disabled={!ready || pending}>
+        <button className="btn" disabled={!ready || pending} aria-busy={pending}>
           {pending ? "Saving…" : "Done"}
         </button>
       )}

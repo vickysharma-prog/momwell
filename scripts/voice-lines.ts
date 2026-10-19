@@ -4,27 +4,32 @@ import { execFileSync } from "node:child_process";
 import { writeFileSync, rmSync } from "node:fs";
 import { LINES, STYLE, VOICE, type LineId } from "../lib/voice/lines.ts";
 
-const MODEL = "gemini-3.8-flash-tts";
+// Same voice on each model; each has its own free-tier quota, so a busy one hands over to the next.
+const MODELS = ["gemini-3.8-flash-tts", "gemini-3.1-flash-tts-preview", "gemini-2.5-flash-preview-tts", "gemini-2.5-pro-preview-tts"];
 const ids = (process.argv.length > 2 ? process.argv.slice(2) : Object.keys(LINES)) as LineId[];
 const path = (name: string) => new URL(`../public/voice/${name}`, import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1");
 
-// The free tier allows a few TTS calls a minute: on 429, wait the time Google asks for and try again.
-async function speak(id: LineId): Promise<{ data: string }> {
-  for (let attempt = 0; attempt < 6; attempt++) {
-    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent`, {
-    method: "POST",
-    headers: { "x-goog-api-key": process.env.GOOGLE_GENERATIVE_AI_API_KEY!, "content-type": "application/json" },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: `${STYLE} ${LINES[id]}` }] }],
-      generationConfig: { responseModalities: ["AUDIO"], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: VOICE } } } },
-    }),
-  });
-    const body = await res.json();
-    const audio = body.candidates?.[0]?.content?.parts?.[0]?.inlineData;
-    if (audio) return audio;
-    if (res.status !== 429) throw new Error(`${id}: ${JSON.stringify(body.error ?? body).slice(0, 300)}`);
-    const wait = Number(/retry in ([\d.]+)s/i.exec(body.error?.message ?? "")?.[1] ?? 30);
-    console.log(`${id}: rate limited, waiting ${Math.ceil(wait)}s`);
+// On 429 try the next model; when every model is busy, wait the time Google asks for and go round again.
+async function speak(id: LineId): Promise<{ data: string; mimeType?: string }> {
+  for (let round = 0; round < 4; round++) {
+    let wait = 30;
+    for (const model of MODELS) {
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+        method: "POST",
+        headers: { "x-goog-api-key": process.env.GOOGLE_GENERATIVE_AI_API_KEY!, "content-type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: `${STYLE} ${LINES[id]}` }] }],
+          generationConfig: { responseModalities: ["AUDIO"], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: VOICE } } } },
+        }),
+      });
+      const body = await res.json();
+      const audio = body.candidates?.[0]?.content?.parts?.[0]?.inlineData;
+      if (audio) return audio;
+      if (res.status !== 429 && res.status !== 503) throw new Error(`${id} (${model}): ${JSON.stringify(body.error ?? body).slice(0, 300)}`);
+      wait = Math.min(wait, Number(/retry in ([\d.]+)s/i.exec(body.error?.message ?? "")?.[1] ?? 30));
+      console.log(`${id}: ${model} busy`);
+    }
+    console.log(`${id}: every model busy, waiting ${Math.ceil(wait)}s`);
     await new Promise((r) => setTimeout(r, (wait + 1) * 1000));
   }
   throw new Error(`${id}: still rate limited`);
@@ -33,7 +38,10 @@ async function speak(id: LineId): Promise<{ data: string }> {
 for (const id of ids) {
   const audio = await speak(id);
   writeFileSync(path(`${id}.wav`), Buffer.from(audio.data, "base64"));
-  execFileSync("ffmpeg", ["-y", "-loglevel", "error", "-i", path(`${id}.wav`), "-ac", "1", "-b:a", "64k", path(`${id}.mp3`)]);
+  // Some models send a WAV file, others raw 16-bit PCM ("audio/L16;codec=pcm;rate=24000").
+  const rate = /rate=(\d+)/.exec(audio.mimeType ?? "")?.[1];
+  const raw = /L16|pcm/i.test(audio.mimeType ?? "") ? ["-f", "s16le", "-ar", rate ?? "24000", "-ac", "1"] : [];
+  execFileSync("ffmpeg", ["-y", "-loglevel", "error", ...raw, "-i", path(`${id}.wav`), "-ac", "1", "-b:a", "64k", path(`${id}.mp3`)]);
   rmSync(path(`${id}.wav`));
   console.log("recorded", id);
 }

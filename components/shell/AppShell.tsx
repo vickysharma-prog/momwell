@@ -7,6 +7,7 @@ import { Logo } from "@/components/Logo";
 import { signOut } from "@/lib/auth/actions";
 import type { Role } from "@/lib/people/signup";
 import { activeHref, navFor, type Icon } from "./nav";
+import { SoundToggle, UiSounds } from "./UiSounds";
 
 const ROLE_LABEL: Record<Role, string> = { mother: "Mom", circle: "Her circle", care_team: "Care team" };
 
@@ -71,7 +72,10 @@ export function AppShell({ role, name, banner, children }: { role: Role; name: s
             </Link>
           ))}
         </nav>
-        <div className="mt-auto flex items-center gap-3 rounded-2xl border border-line p-3">
+        <div className="mt-auto -mb-5">
+          <SoundToggle labelled />
+        </div>
+        <div className="flex items-center gap-3 rounded-2xl border border-line p-3">
           <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-honey font-semibold text-[#1f1a2e]">{name.slice(0, 1).toUpperCase()}</span>
           <span className="flex min-w-0 flex-col">
             <span className="truncate font-medium">{name}</span>
@@ -87,12 +91,16 @@ export function AppShell({ role, name, banner, children }: { role: Role; name: s
         <Link href="/home" aria-label="Momwell, today">
           <Logo size={26} />
         </Link>
-        <form action={signOut}>
-          <button className="text-sm text-ink-soft underline-offset-4 hover:underline">Sign out</button>
-        </form>
+        <div className="flex items-center gap-1">
+          <SoundToggle />
+          <form action={signOut}>
+            <button className="text-sm text-ink-soft underline-offset-4 hover:underline">Sign out</button>
+          </form>
+        </div>
       </header>
 
       <div className="min-w-0 pb-28 md:pb-0">
+        <UiSounds />
         {banner}
         {children}
       </div>
