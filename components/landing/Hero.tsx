@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { motion } from "motion/react";
 import { useEffect, useState } from "react";
 import { Logo } from "@/components/Logo";
-import { PhoneMock } from "./PhoneMock";
+import { MomScene } from "./MomScene";
 
 const LINKS = [
   ["How it works", "#how"],
@@ -52,73 +52,34 @@ export function LandingHeader() {
   );
 }
 
-const PEOPLE = ["partner", "mom", "best friend", "doula", "OB-GYN", "sister"];
-
-// The first screen: what Momwell is in one line, the way in, and the app itself.
+// The first screen: what Momwell is in one line, the two ways in, and the journey it covers, alive.
 export function Hero() {
-  const still = useReducedMotion();
-  const [i, setI] = useState(0);
-  useEffect(() => {
-    if (still) return;
-    const t = setInterval(() => setI((n) => (n + 1) % PEOPLE.length), 2400);
-    return () => clearInterval(t);
-  }, [still]);
-
   return (
     <section className="relative overflow-hidden">
       <div aria-hidden="true" className="pointer-events-none absolute -top-40 right-[-10%] h-[620px] w-[620px] rounded-full bg-brand-soft opacity-70 blur-3xl" />
       <div aria-hidden="true" className="pointer-events-none absolute top-[360px] left-[-12%] h-[420px] w-[420px] rounded-full bg-honey opacity-15 blur-3xl" />
-      <div className="relative mx-auto grid max-w-6xl items-center gap-14 px-5 pt-10 pb-20 sm:px-8 md:pt-16 lg:grid-cols-[1.2fr_0.8fr]">
+      <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-5 pt-8 pb-20 sm:px-8 md:pt-14 lg:grid-cols-[1.15fr_0.85fr]">
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: [0.2, 0.8, 0.2, 1] }} className="flex flex-col gap-7">
-          <p className="w-fit rounded-full border border-line bg-paper-raised px-4 py-1.5 text-sm font-medium text-ink-soft">For pregnancy and the year after birth</p>
+          <p className="w-fit rounded-full border border-line bg-paper-raised px-4 py-1.5 text-sm font-medium text-ink-soft">The care companion for pregnancy and the year after</p>
           <h1 className="text-5xl leading-[1.04] sm:text-6xl lg:text-[3.6rem]">
-            Care that knows her,
-            <br />
-            with her{" "}
-            <span className="relative inline-block min-w-[4ch] text-brand">
-              <AnimatePresence mode="wait">
-                <motion.span key={PEOPLE[i]} initial={{ opacity: 0, y: 14, filter: "blur(4px)" }} animate={{ opacity: 1, y: 0, filter: "blur(0px)" }} exit={{ opacity: 0, y: -14, filter: "blur(4px)" }} transition={{ duration: 0.35 }} className="inline-block italic">
-                  {PEOPLE[i]}
-                </motion.span>
-              </AnimatePresence>
-            </span>
-            <br />
-            beside her.
+            From first heartbeat to first birthday, <span className="text-brand italic">Momwell keeps watch.</span>
           </h1>
           <p className="max-w-xl text-lg leading-relaxed text-ink-soft sm:text-xl">
-            A 30-second check-in made for her every day. Warning signs caught in time by rules from the CDC, never a guess. And her partner, family and care team working as one team, seeing only what she chooses.
+            One companion for everything she needs. It checks the CDC’s urgent warning signs with her every day, gathers her partner, family and care team around her, and makes each day feel like hers.
           </p>
           <div className="flex flex-wrap items-center gap-3">
-            <Link href="/signup" className="flex h-14 items-center rounded-full bg-brand px-8 text-lg font-semibold text-on-brand shadow-[0_18px_40px_-18px_var(--brand)] transition active:scale-[0.98]">
+            <Link href="/demo" className="flex h-14 items-center rounded-full bg-brand px-8 text-lg font-semibold text-on-brand shadow-[0_18px_40px_-18px_var(--brand)] transition active:scale-[0.98]">
+              Try it as Maya
+            </Link>
+            <Link href="/signup" className="flex h-14 items-center rounded-full border border-line bg-paper-raised px-7 text-lg font-medium transition hover:border-brand">
               Start for free
             </Link>
-            <a href="#how" className="flex h-14 items-center rounded-full border border-line bg-paper-raised px-7 text-lg font-medium transition hover:border-brand">
-              See how it works
-            </a>
           </div>
-          <p className="text-sm text-ink-soft">Free for every mom and her people.</p>
+          <p className="text-sm text-ink-soft">One click opens a demo family: Maya at 27 weeks, her partner Sam and her OB-GYN. No sign-up.</p>
         </motion.div>
 
-        <motion.div initial={{ opacity: 0, y: 30, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ duration: 0.8, delay: 0.15, ease: [0.2, 0.8, 0.2, 1] }} className="relative mx-auto">
-          <PhoneMock />
-          <motion.div
-            initial={{ opacity: 0, x: 24 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.9, duration: 0.5 }}
-            className="absolute top-[46%] -right-10 hidden w-60 rounded-2xl border border-line bg-paper-raised p-4 shadow-[0_24px_50px_-24px_rgba(19,32,31,0.35)] sm:block lg:-right-28"
-          >
-            <p className="text-sm font-semibold">Dr Lee saw your check-in</p>
-            <p className="mt-1 text-sm text-ink-soft">Your care team is in the loop.</p>
-          </motion.div>
-          <motion.div
-            initial={{ opacity: 0, x: -24 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 1.2, duration: 0.5 }}
-            className="absolute -bottom-8 -left-12 hidden w-56 rounded-2xl border border-line bg-paper-raised p-4 shadow-[0_24px_50px_-24px_rgba(19,32,31,0.35)] sm:block lg:-left-44"
-          >
-            <p className="text-sm font-semibold">Sam took the night shift</p>
-            <p className="mt-1 text-sm text-ink-soft">Rest. He’ll wake you if the baby needs you.</p>
-          </motion.div>
+        <motion.div initial={{ opacity: 0, y: 30, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ duration: 0.8, delay: 0.15, ease: [0.2, 0.8, 0.2, 1] }} className="relative">
+          <MomScene />
         </motion.div>
       </div>
     </section>
