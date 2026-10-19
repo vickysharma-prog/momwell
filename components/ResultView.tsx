@@ -8,6 +8,11 @@ export function ResultView({ result }: { result: Pick<Result, "level" | "reasons
   return (
     <section className={`flex flex-col gap-5 rounded-3xl p-6 ${alarm ? "bg-[var(--alarm-soft)]" : "card"}`} aria-live="assertive">
       <h2 className="text-3xl font-semibold leading-tight">{alarm ? ACTION[result.level] : result.level === "check" ? "Let’s check that again" : "Thank you for checking in"}</h2>
+      {alarm && (
+        <a className="btn bg-[var(--alarm)]" href="tel:911">
+          Call 911
+        </a>
+      )}
       {result.crisis && (
         <div className="flex flex-col gap-3">
           <p className="text-lg">You don’t have to carry this alone. If you might act on these thoughts, call 911 now.</p>
@@ -16,17 +21,12 @@ export function ResultView({ result }: { result: Pick<Result, "level" | "reasons
               <p className="font-medium">{line.name}</p>
               <p className="muted text-sm">{line.note}</p>
               <div className="flex gap-2">
-                <a className="btn" href={`tel:${line.call}`}>Call {line.call}</a>
+                <a className="btn" href={`tel:${line.call}`}>{line.label}</a>
                 <a className="btn-quiet" href={`sms:${line.text}`}>Text</a>
               </div>
             </div>
           ))}
         </div>
-      )}
-      {alarm && (
-        <a className="btn bg-[var(--alarm)]" href="tel:911">
-          Call 911
-        </a>
       )}
       {result.reasons.length > 0 && (
         <ul className="flex flex-col gap-3">

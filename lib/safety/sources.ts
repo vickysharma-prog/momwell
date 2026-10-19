@@ -27,6 +27,6 @@ export const SOURCES = {
 
 // Shown with any thought of harm. 988 is the crisis line; the maternal hotline says it is not one, so it comes second.
 export const CRISIS_LINES = [
-  { name: "988 Suicide & Crisis Lifeline", call: "988", text: "988", note: "Call or text, 24/7. Chat in English or Spanish at 988lifeline.org.", source: SOURCES.lifeline988 },
-  { name: "National Maternal Mental Health Hotline", call: "1-833-852-6262", text: "1-833-852-6262", note: "1-833-TLC-MAMA. Call or text, 24/7, English and Spanish.", source: SOURCES.maternalHotline },
+  { name: "988 Suicide & Crisis Lifeline", label: "Call 988", call: "988", text: "988", note: "Call or text, 24/7. Chat in English or Spanish at 988lifeline.org.", source: SOURCES.lifeline988 },
+  { name: "National Maternal Mental Health Hotline", label: "Call the hotline", call: "1-833-852-6262", text: "1-833-852-6262", note: "1-833-852-6262 (1-833-TLC-MAMA). Call or text, 24/7, English and Spanish.", source: SOURCES.maternalHotline },
 ] as const;
