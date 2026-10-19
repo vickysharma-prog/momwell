@@ -29,3 +29,35 @@ body {
   background: var(--paper);
   color: var(--ink);
 }
+
+/* Phone first: big type, big targets for one hand, soft rounded surfaces. */
+@layer components {
+  .card {
+    @apply rounded-3xl border p-5;
+    background: var(--paper-raised);
+    border-color: var(--line);
+  }
+  .field {
+    @apply w-full rounded-2xl border px-4 py-3.5 text-lg outline-none;
+    background: var(--paper-raised);
+    border-color: var(--line);
+  }
+  .field:focus {
+    border-color: var(--accent);
+  }
+  .btn {
+    @apply inline-flex min-h-14 w-full items-center justify-center rounded-full px-6 text-lg font-semibold transition disabled:opacity-60;
+    background: var(--accent);
+    color: #fff;
+  }
+  .btn-quiet {
+    @apply inline-flex min-h-12 items-center justify-center rounded-full border px-5 font-medium;
+    border-color: var(--line);
+  }
+  .muted {
+    color: var(--ink-soft);
+  }
+  .error {
+    color: var(--alarm);
+  }
+}

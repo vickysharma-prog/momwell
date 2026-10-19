@@ -10,3 +10,13 @@ export function defaultSees(link: Link): Scope[] {
   // The partner gets alerts and the shared calendar for night shifts and visits; mood stays hers to share.
   return link.partner ? ["tasks", "alerts", "baby", "appointments"] : ["tasks", "baby"];
 }
+
+export const SCOPE_LABEL: Record<Scope, string> = {
+  tasks: "Ways to help",
+  alerts: "Urgent alerts",
+  checkins: "Daily check-ins",
+  mood: "Mood screening",
+  baby: "Baby updates",
+  appointments: "Appointments",
+  medicines: "Medicines",
+};
