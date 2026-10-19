@@ -88,39 +88,39 @@ export function Pillars() {
 }
 
 const JOURNEY = [
-  { stage: "Pregnancy", photo: PHOTOS.pregnant, points: ["A daily check-in by week", "Warning signs and blood pressure, checked by rules", "Food that’s safe to enjoy, shows that won’t upset her"] },
+  { stage: "Pregnancy", photo: PHOTOS.nursery, points: ["A daily check-in by week", "Warning signs and blood pressure, checked by rules", "Food that’s safe to enjoy, shows that won’t upset her"] },
   { stage: "Birth", photo: PHOTOS.bedside, points: ["A calm birth playlist from the music she loves", "Her partner and family told the moment she needs them", "Her care team in the loop"] },
-  { stage: "The first year", photo: PHOTOS.firstYear, points: ["Warning signs after birth, watched for the full year", "Help with how she feels, and crisis lines one tap away", "Night shifts and help shared with her circle"] },
+  { stage: "The first year", photo: PHOTOS.firstYear, points: ["Warning signs after birth, watched for the full year", "Help with how she feels, and crisis lines one tap away", "Her circle, on the same page"] },
 ];
 
+// Three photographs edge to edge, the page as the canvas: what Momwell does at each stage, written on the moment.
 export function Journey() {
   return (
-    <section className="bg-brand-soft/60">
-      <div className="mx-auto max-w-7xl px-5 py-28 sm:px-8">
+    <section>
+      <div className="mx-auto max-w-7xl px-5 pt-28 pb-14 sm:px-8">
         <div className="reveal max-w-3xl">
           <Eyebrow>Pregnancy, birth and the year after</Eyebrow>
-          <h2 className="mt-4 text-4xl leading-tight sm:text-5xl">Most care stops at the six-week visit. Momwell stays the whole year.</h2>
+          <h2 className="mt-4 text-4xl leading-tight sm:text-5xl">Most care thins out after the six-week visit. Momwell stays the whole year.</h2>
         </div>
-        <div className="mt-16 grid gap-8 md:grid-cols-3">
-          {JOURNEY.map((j) => (
-            <article key={j.stage} className="reveal flex flex-col overflow-hidden rounded-3xl bg-paper-raised">
-              <div className="relative aspect-[4/3]">
-                <Image src={j.photo.src} alt={j.photo.alt} fill sizes="(min-width: 768px) 33vw, 100vw" className="object-cover" />
-              </div>
-              <div className="flex flex-col gap-4 p-7">
-                <h3 className="text-2xl font-semibold">{j.stage}</h3>
-                <ul className="flex flex-col gap-3">
-                  {j.points.map((p) => (
-                    <li key={p} className="flex gap-3 leading-snug text-ink-soft">
-                      <span className="mt-2 size-1.5 shrink-0 rounded-full bg-brand" aria-hidden="true" />
-                      {p}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </article>
-          ))}
-        </div>
+      </div>
+      <div className="grid md:grid-cols-3">
+        {JOURNEY.map((j) => (
+          <article key={j.stage} className="group relative min-h-[560px] overflow-hidden">
+            <Image src={j.photo.src} alt={j.photo.alt} fill sizes="(min-width: 768px) 33vw, 100vw" className="object-cover transition duration-[1.2s] group-hover:scale-[1.04]" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#1f1a2e]/85 via-[#1f1a2e]/25 to-transparent" aria-hidden="true" />
+            <div className="absolute inset-x-0 bottom-0 flex flex-col gap-4 p-8 text-white sm:p-10">
+              <h3 className="font-display text-3xl">{j.stage}</h3>
+              <ul className="flex flex-col gap-2.5">
+                {j.points.map((p) => (
+                  <li key={p} className="flex gap-3 leading-snug opacity-95">
+                    <span className="mt-2 size-1.5 shrink-0 rounded-full bg-honey" aria-hidden="true" />
+                    {p}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </article>
+        ))}
       </div>
     </section>
   );
@@ -205,23 +205,22 @@ export function MadeForHer() {
 
 export function Audiences() {
   const cards = [
-    { id: "families", photo: PHOTOS.partner, eyebrow: "For partners and families", title: "Know how to help, and know the moment she needs you.", points: ["Alerts when she reports a warning sign", "What she needs today, matched to her taste", "Only what she chooses to share"] },
+    { id: "families", photo: PHOTOS.partner, eyebrow: "For partners and families", title: "Know how to help, and know the moment she needs you.", points: ["Alerts when she reports a warning sign", "What she chooses to share, nothing more", "One place for the whole family"] },
     { id: "clinicians", photo: PHOTOS.clinician, eyebrow: "For OB-GYNs, midwives and doulas", title: "See what matters between visits.", points: ["Alerts with the reason, and a “Seen” she can see", "Her check-ins, blood pressure and own words", "Invite a patient, or be invited by one"] },
   ];
   return (
-    <section className="mx-auto grid max-w-7xl gap-8 px-5 py-28 sm:px-8 md:grid-cols-2">
+    <section className="grid md:grid-cols-2">
       {cards.map((c) => (
-        <article key={c.id} id={c.id} className="reveal flex scroll-mt-24 flex-col overflow-hidden rounded-3xl border border-line bg-paper-raised">
-          <div className="relative aspect-[16/10]">
-            <Image src={c.photo.src} alt={c.photo.alt} fill sizes="(min-width: 768px) 50vw, 100vw" className="object-cover" />
-          </div>
-          <div className="flex flex-col gap-5 p-8 sm:p-10">
-            <Eyebrow>{c.eyebrow}</Eyebrow>
-            <h2 className="text-3xl leading-tight">{c.title}</h2>
-            <ul className="flex flex-col gap-3">
+        <article key={c.id} id={c.id} className="relative flex min-h-[620px] scroll-mt-24 items-end overflow-hidden">
+          <Image src={c.photo.src} alt={c.photo.alt} fill sizes="(min-width: 768px) 50vw, 100vw" className="object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#1f1a2e]/90 via-[#1f1a2e]/35 to-transparent" aria-hidden="true" />
+          <div className="relative flex flex-col gap-5 p-8 text-white sm:p-12">
+            <p className="text-sm font-semibold tracking-widest uppercase opacity-80">{c.eyebrow}</p>
+            <h2 className="max-w-lg text-3xl leading-tight sm:text-4xl">{c.title}</h2>
+            <ul className="flex flex-col gap-2.5">
               {c.points.map((p) => (
                 <li key={p} className="flex gap-3 text-lg leading-snug">
-                  <svg className="mt-1 shrink-0 text-brand" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <svg className="mt-1 shrink-0 text-honey" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                     <path d="M20 6 9 17l-5-5" />
                   </svg>
                   {p}
