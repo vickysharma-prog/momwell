@@ -54,3 +54,16 @@ export async function setDemoBorn(born: boolean) {
   revalidatePath("/", "layout");
   redirect(born && me.role === "mother" ? "/baby" : "/home");
 }
+
+// One step of the demo story: be the right person, at the right point in the story, on the right page.
+export async function demoGo(role: keyof typeof MEMBER, path: string, born?: boolean) {
+  const { me } = await requireMe();
+  if (!me.demo_family || !(role in MEMBER) || !/^\/[a-z-]*$/.test(path)) redirect("/home");
+  if (born !== undefined) {
+    const mom = await demoMother(me.demo_family);
+    if (mom) await supabaseAdmin().from("mothers").update({ birth_date: born ? new Date(Date.now() - 42 * 86_400_000).toISOString().slice(0, 10) : null, updated_at: new Date().toISOString() }).eq("id", mom.id);
+  }
+  if (me.role !== role) await signInAs(me.demo_family, MEMBER[role]);
+  revalidatePath("/", "layout");
+  redirect(path);
+}

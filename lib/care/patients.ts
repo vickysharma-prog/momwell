@@ -8,6 +8,7 @@ import type { Level } from "./triage.ts";
 export type Patient = {
   id: string;
   name: string;
+  phone: string | null;
   stage: string;
   lastCheckIn: string | null;
   lastLevel: Level | null;
@@ -30,8 +31,8 @@ export function stageLabel(dates: { due_date?: string | null; birth_date?: strin
 const aboutBaby = (a: { checkin: unknown }) => (a.checkin as { subject?: string } | null)?.subject === "baby";
 
 export async function myPatients(db: SupabaseClient, clinicianId: string, now = new Date()): Promise<Patient[]> {
-  const { data: links } = await db.from("links").select("mother_id, other:profiles!links_mother_id_fkey(name)").eq("person_id", clinicianId).eq("kind", "care_team");
-  const rows = (links ?? []) as unknown as { mother_id: string; other: { name: string } }[];
+  const { data: links } = await db.from("links").select("mother_id, other:profiles!links_mother_id_fkey(name, phone)").eq("person_id", clinicianId).eq("kind", "care_team");
+  const rows = (links ?? []) as unknown as { mother_id: string; other: { name: string; phone: string | null } }[];
   const ids = rows.map((l) => l.mother_id);
   if (!ids.length) return [];
   const [{ data: checkins }, { data: alerts }, { data: dates }, { data: moods }] = await Promise.all([
@@ -47,6 +48,7 @@ export async function myPatients(db: SupabaseClient, clinicianId: string, now = 
     return {
       id: mother_id,
       name: other.name,
+      phone: other.phone,
       stage: stageLabel((dates ?? []).find((d) => d.id === mother_id) ?? null, now),
       lastCheckIn: mine[0]?.created_at ?? null,
       lastLevel: (mine[0]?.level as Level) ?? null,

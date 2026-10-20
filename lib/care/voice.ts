@@ -1,3 +1,5 @@
+import { needs911 } from "../safety/tier.ts";
+
 // The reasons a check-in shows her are written to her ("You told us"). Her care team reads them about her.
 const SWAPS: [RegExp, string][] = [
   [/^You told us\b/, "She reported"],
@@ -18,8 +20,8 @@ export function aboutHer(text: string) {
 }
 
 export const LEVEL_FOR_TEAM = {
-  urgent: "Told to get care now (911 if an emergency)",
-  call_doctor: "Told to call her doctor right away",
+  urgent: "Told to call her doctor now",
+  call_doctor: "Told to call her doctor now",
   check: "Asked to re-enter a reading",
   none: "Nothing on the warning-sign list",
 } as const;
@@ -30,3 +32,10 @@ export const LEVEL_FOR_TEAM_BABY = {
   check: "Baby: asked to re-enter a temperature",
   none: "Baby: nothing on the warning-sign list",
 } as const;
+
+/** What she was told, for her care team: 911 for AWHONN's 911 signs and 160/110, her doctor now for the rest. */
+export function toldHer(c: { level: keyof typeof LEVEL_FOR_TEAM; reasons: { id: string; level: string }[]; subject?: "mother" | "baby" }) {
+  if (c.subject === "baby") return LEVEL_FOR_TEAM_BABY[c.level];
+  if ((c.level === "urgent" || c.level === "call_doctor") && needs911(c.reasons)) return "Told to call 911";
+  return LEVEL_FOR_TEAM[c.level];
+}

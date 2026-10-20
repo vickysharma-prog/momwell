@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Greeting } from "@/components/Greeting";
+import { CircleShowcase } from "@/components/CircleShowcase";
 import { Showcase } from "@/components/Showcase";
 import { Guide } from "@/components/Guide";
 import { AlertList, type Alert } from "@/components/AlertList";
@@ -11,8 +12,8 @@ import { requireMe } from "@/lib/people/me";
 import { moodDue } from "@/lib/safety/mood";
 import { babyAge, stageFrom, weeksPregnant } from "@/lib/safety/stage";
 
-type Linked = { mother_id: string; person_id: string; kind: string; relation: string; partner: boolean; sees: Scope[]; other: { name: string } };
-type HelpAsk = { id: string; kind: AskKind; needed_on: string; taken_by: string | null; mom: { name: string } | null; taker: { name: string } | null };
+type Linked = { mother_id: string; person_id: string; kind: string; relation: string; partner: boolean; sees: Scope[]; other: { name: string; phone?: string | null } };
+type HelpAsk = { id: string; mother_id: string; kind: AskKind; needed_on: string; taken_by: string | null; mom: { name: string } | null; taker: { name: string } | null };
 type CheckIn = { id: string; created_at: string; level: "urgent" | "call_doctor" | "check" | "none"; subject: "mother" | "baby" };
 
 const LEVEL: Record<CheckIn["level"], { label: string; dot: string }> = {
@@ -33,13 +34,13 @@ export default async function Today() {
   const [{ data: links }, { data: alerts }, { data: checkins }, { data: dates }, { data: asks }, { data: lastMood }] = await Promise.all([
     mine
       ? db.from("links").select("*, other:profiles!links_person_id_fkey(name)").eq("mother_id", me.id).order("created_at")
-      : db.from("links").select("*, other:profiles!links_mother_id_fkey(name)").eq("person_id", me.id).order("created_at"),
+      : db.from("links").select("*, other:profiles!links_mother_id_fkey(name, phone)").eq("person_id", me.id).order("created_at"),
     // Row-level security returns only alerts for moms who share alerts with this person (or her own).
     db.from("alerts").select("id, mother_id, checkin_id, level, created_at, seen_at, mother:profiles!alerts_mother_id_fkey(name), seer:profiles!alerts_seen_by_fkey(name), checkin:checkins(subject)").order("seen_at", { ascending: false, nullsFirst: true }).order("created_at", { ascending: false }).limit(20),
     mine ? db.from("checkins").select("id, created_at, level, subject").eq("mother_id", me.id).order("created_at", { ascending: false }).limit(6) : Promise.resolve({ data: [] }),
     mine ? db.from("mothers").select("due_date, birth_date").eq("id", me.id).maybeSingle() : Promise.resolve({ data: null }),
     // What she asked her circle for, from today on (row-level security: hers, or moms who share ways to help).
-    db.from("asks").select("id, kind, needed_on, taken_by, mom:profiles!asks_mother_id_fkey(name), taker:profiles!asks_taken_by_fkey(name)").eq("done", false).gte("needed_on", new Date().toISOString().slice(0, 10)).order("needed_on").limit(6),
+    db.from("asks").select("id, mother_id, kind, needed_on, taken_by, mom:profiles!asks_mother_id_fkey(name), taker:profiles!asks_taken_by_fkey(name)").eq("done", false).gte("needed_on", new Date().toISOString().slice(0, 10)).order("needed_on").limit(6),
     mine ? db.from("moods").select("created_at").eq("mother_id", me.id).order("created_at", { ascending: false }).limit(1).maybeSingle() : Promise.resolve({ data: null }),
   ]);
   const help = (asks ?? []) as unknown as HelpAsk[];
@@ -159,6 +160,22 @@ export default async function Today() {
           </div>
         </div>
       ) : (
+        <>
+        {people.map((p) => {
+          const mine = help.find((a) => a.mother_id === p.mother_id && a.taken_by === me.id);
+          return (
+            <CircleShowcase
+              key={p.mother_id}
+              db={db}
+              facts={{
+                mom: { id: p.mother_id, name: p.other.name, phone: p.other.phone ?? null },
+                unseen: ((alerts ?? []) as unknown as Alert[]).filter((a) => a.mother_id === p.mother_id && !a.seen_at).length,
+                asks: help.filter((a) => a.mother_id === p.mother_id).length,
+                mine: mine ? ASK_KINDS[mine.kind].short.toLowerCase() : null,
+              }}
+            />
+          );
+        })}
         <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
           {(alerts ?? []).length > 0 ? (
             <AlertList alerts={alerts as unknown as Alert[]} role={me.role} />
@@ -185,6 +202,7 @@ export default async function Today() {
             )}
           </section>
         </div>
+        </>
       )}
     </AppPage>
   );

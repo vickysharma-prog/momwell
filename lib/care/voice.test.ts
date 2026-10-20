@@ -3,7 +3,7 @@ import { test } from "node:test";
 import { evaluateBaby } from "../safety/baby.ts";
 import { evaluate } from "../safety/engine.ts";
 import { SIGN_IDS } from "../safety/signs.ts";
-import { aboutHer } from "./voice.ts";
+import { aboutHer, toldHer } from "./voice.ts";
 
 test("every reason the engine writes reads about her, not to her", () => {
   const r = evaluate({ signs: [...SIGN_IDS], bp: { systolic: 170, diastolic: 115 }, temp: { value: 39, unit: "C" } });
@@ -17,4 +17,13 @@ test("the numbers stay as they were", () => {
 test("a baby check-in reads about her baby", () => {
   for (const r of evaluateBaby({ signs: ["baby_blue"], temp: { value: 101, unit: "F" } }, 20).reasons) assert.doesNotMatch(aboutHer(r.text), /\byour?\b/i);
   assert.equal(aboutHer(evaluateBaby({ signs: ["baby_dry"] }, 20).reasons[0].text), "She reported about her baby: no wet diaper in 8 hours.");
+});
+
+test("her care team reads which call she was told to make", () => {
+  const as = (r: ReturnType<typeof evaluate>, subject?: "mother" | "baby") => toldHer({ level: r.level, reasons: r.reasons, subject });
+  assert.equal(as(evaluate({ signs: ["headache"] })), "Told to call her doctor now");
+  assert.equal(as(evaluate({ signs: ["breathing"] })), "Told to call 911");
+  assert.equal(as(evaluate({ signs: [], bp: { systolic: 165, diastolic: 100 } })), "Told to call 911");
+  assert.equal(as(evaluate({ signs: [] })), "Nothing on the warning-sign list");
+  assert.equal(as(evaluate({ signs: ["headache"] }), "baby"), "Baby: told to call 911");
 });

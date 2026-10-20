@@ -1,6 +1,6 @@
 import type { Role } from "@/lib/people/signup";
 
-export type Icon = "today" | "checkin" | "talk" | "foryou" | "help" | "people" | "patients" | "invite";
+export type Icon = "today" | "checkin" | "talk" | "foryou" | "help" | "people" | "patients" | "invite" | "signs";
 export type NavItem = { href: string; label: string; icon: Icon };
 
 // What each role sees in the sidebar (desktop) and the tab bar (phone).
@@ -22,6 +22,7 @@ export function navFor(role: Role): NavItem[] {
   return [
     { href: "/home", label: "Today", icon: "today" },
     { href: "/help", label: "Help", icon: "help" },
+    { href: "/signs", label: "Signs", icon: "signs" },
     { href: "/people", label: "Moms", icon: "people" },
   ];
 }

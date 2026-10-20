@@ -13,3 +13,7 @@ test("a check-in result highlights Check in, not Today", () => {
   assert.equal(activeHref(navFor("mother"), "/home"), "/home");
   assert.equal(activeHref(navFor("mother"), "/homework"), null);
 });
+
+test("her circle can read the warning signs and what to do", () => {
+  assert.ok(navFor("circle").some((i) => i.href === "/signs"));
+});

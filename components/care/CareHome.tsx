@@ -54,7 +54,36 @@ export async function CareHome({ db, me }: { db: SupabaseClient; me: { id: strin
           <p className="mt-2 text-ink-soft">Invite a patient, or ask her to invite you from her Momwell.</p>
         </section>
       ) : (
-        <div className="overflow-x-auto rounded-3xl border border-line bg-paper-raised">
+        <>
+        {/* On a phone, one card per patient; from a tablet up, the table. */}
+        <ul className="flex flex-col gap-3 md:hidden">
+          {queue.map((p) => (
+            <li key={p.id} className="card flex flex-col gap-3">
+              <div className="flex items-start justify-between gap-3">
+                <span>
+                  <span className="block font-semibold">{p.name}</span>
+                  <span className="text-sm text-ink-soft">{p.stage}</span>
+                </span>
+                <span className={`inline-flex shrink-0 rounded-full px-3 py-1 text-sm font-semibold ${TONE[STATUS[p.status].tone]}`}>{STATUS[p.status].label}</span>
+              </div>
+              <p className="text-sm text-ink-soft">
+                {p.reason} · last check-in {ago(p.lastCheckIn, now)}
+                {p.lastBp ? ` · BP ${p.lastBp}` : ""}
+              </p>
+              <div className="flex gap-2">
+                <Link href={`/patients/${p.id}`} className="btn w-auto min-h-11 px-6 text-base">
+                  Open
+                </Link>
+                {p.phone && (
+                  <a href={`tel:${p.phone}`} className="btn-quiet min-h-11">
+                    Call {p.name}
+                  </a>
+                )}
+              </div>
+            </li>
+          ))}
+        </ul>
+        <div className="hidden overflow-x-auto rounded-3xl border border-line bg-paper-raised md:block">
           <table className="w-full min-w-[760px] text-left">
             <thead>
               <tr className="border-b border-line text-sm text-ink-soft">
@@ -78,16 +107,24 @@ export async function CareHome({ db, me }: { db: SupabaseClient; me: { id: strin
                   </td>
                   <td className="px-5 py-4 text-ink-soft">{ago(p.lastCheckIn, now)}</td>
                   <td className="px-5 py-4 font-medium tabular-nums">{p.lastBp ?? "—"}</td>
-                  <td className="px-5 py-4 text-right">
-                    <Link href={`/patients/${p.id}`} className="font-semibold text-brand underline underline-offset-4">
-                      Open
-                    </Link>
+                  <td className="px-5 py-4">
+                    <span className="flex items-center justify-end gap-3">
+                      {p.phone && (
+                        <a href={`tel:${p.phone}`} className="btn-quiet min-h-10 px-4 text-sm" aria-label={`Call ${p.name}`}>
+                        Call
+                      </a>
+                      )}
+                      <Link href={`/patients/${p.id}`} className="font-semibold text-brand underline underline-offset-4">
+                        Open
+                      </Link>
+                    </span>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
+        </>
       )}
     </AppPage>
   );

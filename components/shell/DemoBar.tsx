@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { setDemoBorn, switchDemo } from "@/lib/demo/actions";
 import type { Role } from "@/lib/people/signup";
+import { DemoTour } from "./DemoTour";
 
 const WHO: { role: Role; name: string; label: string }[] = [
   { role: "mother", name: "Maya", label: "Mom" },
@@ -22,12 +23,12 @@ export function DemoBar({ role, born }: { role: Role; born: boolean }) {
     <div className="border-b border-line bg-brand-soft print:hidden">
       <div className="mx-auto flex max-w-5xl flex-wrap items-center gap-x-4 gap-y-2 px-5 py-3 md:px-10">
         <span className="rounded-full bg-paper-raised px-3 py-1 text-xs font-semibold tracking-wider text-brand uppercase">Demo</span>
-        <span className="text-sm">Viewing as</span>
+        <span className="hidden text-sm sm:inline">Viewing as</span>
         <div className="flex gap-1 rounded-full bg-paper-raised p-1" role="group" aria-label="Switch person">
           {WHO.map((w) => (
             <form key={w.role} action={switchDemo.bind(null, w.role)}>
-              <button aria-pressed={w.role === role} className={`rounded-full px-3 py-1.5 text-sm font-medium transition ${w.role === role ? "bg-brand text-on-brand" : "text-ink-soft hover:text-ink"}`}>
-                {w.name} <span className="opacity-70">· {w.label}</span>
+              <button aria-pressed={w.role === role} className={`whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-medium transition ${w.role === role ? "bg-brand text-on-brand" : "text-ink-soft hover:text-ink"}`}>
+                {w.name} <span className="hidden opacity-70 sm:inline">· {w.label}</span>
               </button>
             </form>
           ))}
@@ -35,8 +36,8 @@ export function DemoBar({ role, born }: { role: Role; born: boolean }) {
         <div className="flex gap-1 rounded-full bg-paper-raised p-1" role="group" aria-label="Where Maya is">
           {[false, true].map((b) => (
             <form key={String(b)} action={setDemoBorn.bind(null, b)}>
-              <button aria-pressed={b === born} className={`rounded-full px-3 py-1.5 text-sm font-medium transition ${b === born ? "bg-brand text-on-brand" : "text-ink-soft hover:text-ink"}`}>
-                {b ? "6 weeks after birth" : "27 weeks"}
+              <button aria-pressed={b === born} className={`whitespace-nowrap rounded-full px-3 py-1.5 text-sm font-medium transition ${b === born ? "bg-brand text-on-brand" : "text-ink-soft hover:text-ink"}`}>
+                {b ? <>6 weeks<span className="hidden sm:inline"> after birth</span></> : "27 weeks"}
               </button>
             </form>
           ))}
@@ -46,6 +47,7 @@ export function DemoBar({ role, born }: { role: Role; born: boolean }) {
           {next.cta}
         </Link>
       </div>
+      <DemoTour role={role} born={born} />
     </div>
   );
 }

@@ -7,7 +7,7 @@ import { PrintButton } from "@/components/care/PrintButton";
 import { markAllSeen } from "@/lib/care/actions";
 import { stageLabel } from "@/lib/care/patients";
 import { statusOf, STATUS } from "@/lib/care/triage";
-import { aboutHer, LEVEL_FOR_TEAM, LEVEL_FOR_TEAM_BABY } from "@/lib/care/voice";
+import { aboutHer, LEVEL_FOR_TEAM, toldHer } from "@/lib/care/voice";
 import { requireMe } from "@/lib/people/me";
 import type { Reason } from "@/lib/safety/engine";
 import { band, QUESTIONS, type MoodLevel } from "@/lib/safety/mood";
@@ -28,7 +28,7 @@ export default async function PatientPage({ params }: PageProps<"/patients/[id]"
   if (me.role !== "care_team") redirect("/home");
 
   const [{ data: profile }, { data: dates }, { data: checkins }, { data: alerts }, { data: moodRows }] = await Promise.all([
-    db.from("profiles").select("name").eq("id", id).maybeSingle(),
+    db.from("profiles").select("name, phone").eq("id", id).maybeSingle(),
     db.from("mothers").select("due_date, birth_date").eq("id", id).maybeSingle(),
     db.from("checkins").select("id, created_at, level, systolic, diastolic, temp_value, temp_unit, note, reasons, source, subject, engine_version").eq("mother_id", id).order("created_at", { ascending: false }).limit(60),
     db.from("alerts").select("id, level, seen_at, checkin:checkins(subject)").eq("mother_id", id).is("seen_at", null),
@@ -60,6 +60,11 @@ export default async function PatientPage({ params }: PageProps<"/patients/[id]"
           <p className="text-lg text-ink-soft">{stageLabel(dates, now)}</p>
         </div>
         <div className="flex flex-wrap gap-2 print:hidden">
+          {profile.phone && (
+            <a href={`tel:${profile.phone}`} className={`btn w-auto px-6 ${open.length ? "bg-[var(--alarm)]" : ""}`}>
+              Call {profile.name}
+            </a>
+          )}
           {open.length > 0 && (
             <form action={markAllSeen.bind(null, id)}>
               <button className="btn w-auto px-6">Mark {open.length === 1 ? "alert" : `${open.length} alerts`} seen</button>
@@ -158,7 +163,7 @@ export default async function PatientPage({ params }: PageProps<"/patients/[id]"
             <li key={c.id} className="flex flex-col gap-2 px-6 py-5">
               <div className="flex flex-wrap items-center gap-3">
                 <span className={`size-2.5 rounded-full ${DOT[c.level]}`} aria-hidden="true" />
-                <span className="font-semibold">{(c.subject === "baby" ? LEVEL_FOR_TEAM_BABY : LEVEL_FOR_TEAM)[c.level]}</span>
+                <span className="font-semibold">{toldHer(c)}</span>
                 <span className="ml-auto text-sm text-ink-soft">{when(c.created_at)}</span>
               </div>
               {c.reasons.map((r) => (
