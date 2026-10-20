@@ -69,6 +69,18 @@ test("each person's Today opens with Momwell's guide for them", async () => {
   await shows(doc, "Whoever needs a look first is at the top");
 });
 
+test("today's plan: made through Qloo after her first visit, with the rules' first step on top; her partner reads it too", async () => {
+  await shows(her, "First: your check-in");
+  // The planner runs after the page is sent; the plan is there on a later visit.
+  for (let i = 0; i < 30 && !(await admin.from("plans").select("id").eq("mother_id", mom.id)).data?.length; i++) await new Promise((r) => setTimeout(r, 3000));
+  for (const page of [her, him]) {
+    await go(page, "/home");
+    await shows(page, /How Momwell made this|Put together by rules today/);
+    await shows(page, "Powered by Qloo");
+  }
+  await shows(him, "Today’s plan for Maya");
+});
+
 test("a reading that can't be right is asked again, never called fine", async () => {
   await checkIn(her, () => her.type("input[name=temp]", "37.5"));
   await shows(her, "Let’s check that again");

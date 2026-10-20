@@ -1,4 +1,8 @@
 import Link from "next/link";
+import { after } from "next/server";
+import { TodayPlan, type First, type PlanRow } from "@/components/TodayPlan";
+import { makePlan } from "@/lib/plan/make";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 import { Greeting } from "@/components/Greeting";
 import { CircleShowcase } from "@/components/CircleShowcase";
 import { Showcase } from "@/components/Showcase";
@@ -36,7 +40,7 @@ export default async function Today() {
   const todayDate = dateIn(tz);
   if (me.role === "care_team") return <CareHome db={db} me={me} />;
   const mine = me.role === "mother";
-  const [{ data: links }, { data: alerts }, { data: checkins }, { data: dates }, { data: asks }, { data: lastMood }] = await Promise.all([
+  const [{ data: links }, { data: alerts }, { data: checkins }, { data: dates }, { data: asks }, { data: lastMood }, { data: planRows }] = await Promise.all([
     mine
       ? db.from("links").select("*, other:profiles!links_person_id_fkey(name)").eq("mother_id", me.id).order("created_at")
       : db.from("links").select("*, other:profiles!links_mother_id_fkey(name, phone)").eq("person_id", me.id).order("created_at"),
@@ -47,7 +51,15 @@ export default async function Today() {
     // What she asked her circle for, from today on (row-level security: hers, or moms who share ways to help).
     db.from("asks").select("id, mother_id, kind, needed_on, taken_by, mom:profiles!asks_mother_id_fkey(name), taker:profiles!asks_taken_by_fkey(name)").eq("done", false).gte("needed_on", todayDate).order("needed_on").limit(6),
     mine ? db.from("moods").select("created_at").eq("mother_id", me.id).order("created_at", { ascending: false }).limit(1).maybeSingle() : Promise.resolve({ data: null }),
+    // Today's plan (row-level security: hers, or moms who share ways to help).
+    db.from("plans").select("mother_id, picks, note_her, note_circle, made_by, trace").eq("for_date", todayDate),
   ]);
+  const plans = (planRows ?? []) as PlanRow[];
+  const planOf = (id: string) => plans.find((x) => x.mother_id === id) ?? null;
+  // A plan not made yet is made after this page is sent, by the planner (or the rules), and shows on the next visit.
+  // ponytail: two quick visits can both start one; the second just overwrites the first.
+  const toMake = (mine ? [me.id] : ((links ?? []) as Linked[]).filter((l) => l.sees.includes("tasks")).map((l) => l.mother_id)).filter((id) => !planOf(id));
+  if (toMake.length) after(() => Promise.all(toMake.map((id) => makePlan(supabaseAdmin(), id, todayDate).catch(() => null))));
   const help = (asks ?? []) as unknown as HelpAsk[];
   const helpCard = help.length > 0 && (
     <section className="card flex flex-col gap-3" aria-label="Help">
@@ -73,6 +85,15 @@ export default async function Today() {
   const stage = stageFrom(dates ?? {}, today);
   const lastMine = recent.find((c) => c.subject === "mother");
   const doneToday = lastMine && dateIn(tz, lastMine.created_at) === todayDate;
+  const openAlerts = ((alerts ?? []) as unknown as Alert[]).filter((a) => !a.seen_at);
+  // What comes first today is the rules' call, made fresh on every visit.
+  const myFirst: First = openAlerts.some((a) => a.mother_id === me.id)
+    ? { text: "a warning sign is open. Follow its steps before anything else.", href: `/check-in/${openAlerts.find((a) => a.mother_id === me.id)!.checkin_id}`, urgent: true }
+    : !doneToday
+      ? { text: "your check-in, thirty seconds.", href: "/check-in" }
+      : moodDue(lastMood?.created_at ?? null, today)
+        ? { text: "your mood check is due.", href: "/mood" }
+        : null;
 
   return (
     <AppPage>
@@ -140,6 +161,7 @@ export default async function Today() {
 
           <div className="flex flex-col gap-6">
             {(alerts ?? []).length > 0 && <AlertList alerts={alerts as unknown as Alert[]} role={me.role} tz={tz} />}
+            <TodayPlan plan={planOf(me.id)} first={myFirst} />
             {helpCard}
             <section className="card flex flex-col gap-4" aria-label="Your people">
               <div className="flex items-center justify-between">
@@ -190,7 +212,20 @@ export default async function Today() {
               <p className="mt-2 text-ink-soft">{people.length ? "Everyone is all clear. We’ll tell you the moment someone needs you." : "Accept an invite link from a mom to get started."}</p>
             </section>
           )}
-          {helpCard}
+          <div className="flex flex-col gap-6">
+            {people
+              .filter((p) => p.sees.includes("tasks"))
+              .map((p) => {
+                const waiting = openAlerts.some((a) => a.mother_id === p.mother_id);
+                const first: First = waiting
+                  ? { text: `call ${p.other.name} about her warning sign.`, href: p.other.phone ? `tel:${p.other.phone}` : "/signs", urgent: true }
+                  : help.some((a) => a.mother_id === p.mother_id && !a.taken_by)
+                    ? { text: `${p.other.name} asked for help. Take something on.`, href: "/help" }
+                    : null;
+                return <TodayPlan key={p.mother_id} plan={planOf(p.mother_id)} first={first} forCircle name={p.other.name} />;
+              })}
+            {helpCard}
+          </div>
           <section className="card flex flex-col gap-4" aria-label="Moms">
             <h2 className="text-2xl">Moms you’re helping</h2>
             {people.length === 0 ? (

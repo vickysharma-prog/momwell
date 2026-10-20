@@ -3,6 +3,8 @@
 import { createHash } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { supabaseAdmin } from "../supabase/admin.ts";
+import { makePlan } from "../plan/make.ts";
+import { dateIn } from "../time.ts";
 import { FAMILY, fillFamily, type Member } from "./family.ts";
 
 export const DEMO_LIMIT_PER_HOUR = 6;
@@ -54,7 +56,12 @@ export async function claimDemoFamily(ipHash: string): Promise<string | null> {
 /** Top the pool back up, one family at a time (Qloo answers are cached, so this spends no quota). */
 export async function fillPool(size = POOL_SIZE) {
   const { count } = await supabaseAdmin().from("demo_families").select("id", { count: "exact", head: true }).is("claimed_at", null);
-  for (let i = count ?? 0; i < size; i++) await createDemoFamily(null);
+  for (let i = count ?? 0; i < size; i++) {
+    const { ids } = await createDemoFamily(null);
+    // Today's plan is ready before a judge arrives (claiming moves it to their day). A family made while a judge waits
+    // gets its plan on its first Today, after the page is sent.
+    await makePlan(supabaseAdmin(), ids.mom, dateIn("America/Chicago")).catch(() => null);
+  }
 }
 
 export const demoEmail = (family: string, member: Member) => `momwell.demo.${member}.${family}@example.com`;
