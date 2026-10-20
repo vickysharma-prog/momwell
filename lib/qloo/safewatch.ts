@@ -3,7 +3,8 @@
 // never reaches her.
 import { insights, tagId, type Entity } from "./api.ts";
 
-// Found by searching Qloo's tags (19 Oct 2026). Everwood carries death_of_mother, Chasing Life cancer.
+// Found by searching Qloo's tags (19 Oct 2026). Everwood carries death_of_mother, Chasing Life cancer; Fleishman Is in
+// Trouble divorce (22 Oct): a marriage ending is a hard watch in the year after birth.
 export const AVOID_TAGS = [
   "urn:tag:keyword:media:death_of_mother",
   "urn:tag:keyword:media:unplanned_pregnancy",
@@ -25,6 +26,7 @@ export const AVOID_TAGS = [
   "urn:tag:theme:qloo:horror",
   "urn:tag:theme:qloo:tragedy",
   "urn:tag:keyword:qloo:tragedy",
+  "urn:tag:keyword:qloo:divorce",
 ] as const;
 
 // What comes back is checked by the theme itself, whichever of Qloo's namespaces carries it (Ginny & Georgia has
@@ -39,6 +41,9 @@ export const AVOID_THEMES = new Set([
   "infertility",
   "child_death",
   "death_of_child",
+  "end_of_a_marriage",
+  "infidelity",
+  "postpartum_depression",
 ]);
 const KINDS = new Set(["keyword", "theme", "subgenre", "genre", "plot"]);
 export const isSafe = (e: Entity) =>

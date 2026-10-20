@@ -31,3 +31,9 @@ test("a theme is caught whichever namespace carries it: Ginny & Georgia's self-h
   // An audience or style tag with a similar word is not a theme.
   assert.equal(isSafe(show("x", "urn:tag:audience:qloo:grief")), true);
 });
+
+test("a marriage ending is left out: Fleishman Is in Trouble", () => {
+  assert.equal(isSafe(show("Fleishman Is in Trouble", "urn:tag:keyword:qloo:divorce", "urn:tag:genre:qloo:drama")), false);
+  assert.equal(isSafe(show("x", "urn:tag:keyword:media:end_of_a_marriage")), false);
+  assert.equal(isSafe(show("x", "urn:tag:keyword:media:infidelity")), false);
+});
