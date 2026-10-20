@@ -42,11 +42,16 @@ the right person is called, and the people around her know.
   blue lips, no wet diaper in eight hours, and more.
 - **For you, through Qloo:** Safe Watch (shows like the ones she loves, with loss, grief and pregnancy scares left
   out), places to eat near her that fit her diet with what to ask for, and a calm birth playlist.
+- **Today's plan:** Momwell's planner asks Qloo for shows, places to eat and music from her taste, chooses one
+  evening and writes a note to her and one to her family (bring dinner from the place it chose). Rules keep only what
+  Qloo returned and drop any note about her health; when the model can't answer, the rules put it together from
+  Qloo's first picks and say so. Above it, the rules decide what comes first today: an open warning sign, her
+  check-in, or her mood check. Every step is one tap away under *How Momwell made this*.
 - **Help from her people:** she asks for a meal, the night feeds, groceries or a ride; they take it with one tap, and
   a dinner ask comes with places she would love.
 
 **For her partner and family:** an alert the moment she needs them, without the private detail unless she shares it,
-and her asks to take on.
+a one-tap call to her, her asks to take on, today's plan for her evening, and her warning signs with which mean 911.
 
 **For her care team:** patients as a triage queue (urgent and unseen first, then call-her, then quiet for three days),
 blood pressure against the 140/90 and 160/110 lines, her mood checks, and a visit summary to print.
@@ -67,6 +72,7 @@ flowchart LR
     Router["Talk router<br/>rules first"]
     Agent["eve agent (Gemini)<br/>tools: report_signs, find_shows,<br/>find_food, find_music, remember_love"]
     Tools["Qloo tools<br/>Safe Watch · food + FDA notes · birth playlist"]
+    Planner["Today's planner (Gemini)<br/>find_shows · find_food · find_music · set_plan"]
   end
   DB[("Supabase Postgres<br/>row-level security · realtime alerts<br/>Qloo response cache")]
   Qloo["Qloo Insights API"]
@@ -77,6 +83,8 @@ flowchart LR
   Router -- "anything else" --> Agent
   Agent -- "report_signs" --> Rules
   Agent --> Tools
+  Planner --> Tools
+  Planner -- "plan, checked by rules" --> DB
   Tools --> Qloo
   Tools <--> DB
   Rules --> DB
@@ -92,10 +100,28 @@ that fired with its source, which call it showed and why, who was told, and whet
 the same tools straight away for the requests they recognise. Every Qloo answer passes through tested rules before
 she sees it: Safe Watch drops upsetting themes by tag, food must be a real meal (no bars, malls or event halls) and fit
 her diet, and each place carries the FDA's advice as rules. Responses are cached in Postgres, so repeat questions are
-instant and spend no quota.
+instant and spend no quota. Every place Qloo made the choice carries a *Powered by Qloo* mark.
 
 **Stack:** Next.js 16 (App Router, React 19), Supabase (Postgres, Auth, row-level security, realtime), eve with
 Gemini, Qloo Insights, recorded voice lines (Gemini TTS), Vercel.
+
+## Where things live
+
+| Folder | What is in it |
+| --- | --- |
+| `lib/safety` | The rules: warning signs by stage, blood pressure and temperature, which call (911 or her doctor), what to say, mood (PHQ-2/9), baby signs, the audit trail |
+| `lib/talk` | Talk's router (crisis, signs, Qloo requests, feelings) and its fixed replies |
+| `lib/qloo` | The Qloo client and cache, Safe Watch, food rules with FDA notes, music, and the shared picks |
+| `lib/plan` | Today's planner, its checks and its rules fallback |
+| `lib/people` | Links, scopes, invites, phones and who a warning screen can call |
+| `lib/care` | The care team's triage queue and wording |
+| `lib/help` | Asks to her circle |
+| `lib/demo` | The demo family, the ready pool and the guided tour |
+| `agent` | The eve companion: instructions and tools |
+| `app/(app)` | Pages: today, check-in, talk, for-you, help, mood, baby, people, signs, patients |
+| `db/migrations` | Every table, row-level security policy and function, in order (001 to 018) |
+| `evals` | Agent evals |
+| `e2e` | Browser tests for every role |
 
 ## Measured
 
@@ -104,9 +130,9 @@ Gemini, Qloo Insights, recorded voice lines (Gemini TTS), Vercel.
 | Warning signs found in 40 labelled messages (word scan and Talk router) | 40 of 40 |
 | Everyday messages wrongly flagged (20 labelled) | 0 of 20 |
 | Companion over the same 60 messages (model path) | 60 of 60 |
-| Unit tests | 170 |
-| Row-level security and Qloo integration tests | 38 |
-| Browser tests across mother, partner and care team | 25 |
+| Unit tests | 182 |
+| Row-level security, planner and Qloo integration tests | 41 |
+| Browser tests across mother, partner and care team | 26 |
 | Agent evals (crisis, no diagnosis, no medicine advice, injection, Spanish, baby signs and more) | 12 suites |
 
 ## Run it
