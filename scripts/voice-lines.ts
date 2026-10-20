@@ -2,7 +2,7 @@
 // Run after changing a line: node --env-file=.env.local scripts/voice-lines.ts [id ...]
 import { execFileSync } from "node:child_process";
 import { writeFileSync, rmSync } from "node:fs";
-import { LINES, STYLE, VOICE, type LineId } from "../lib/voice/lines.ts";
+import { LINES, VOICE, type LineId } from "../lib/voice/lines.ts";
 
 // Same voice on each model; each has its own free-tier quota, so a busy one hands over to the next.
 const MODELS = ["gemini-3.8-flash-tts", "gemini-3.1-flash-tts-preview", "gemini-2.5-flash-preview-tts", "gemini-2.5-pro-preview-tts"];
@@ -18,7 +18,8 @@ async function speak(id: LineId): Promise<{ data: string; mimeType?: string }> {
         method: "POST",
         headers: { "x-goog-api-key": process.env.GOOGLE_GENERATIVE_AI_API_KEY!, "content-type": "application/json" },
         body: JSON.stringify({
-          contents: [{ parts: [{ text: `${STYLE} ${LINES[id]}` }] }],
+          // Only the words: a style instruction in the prompt ("Say this warmly…") gets read aloud by some models.
+          contents: [{ parts: [{ text: LINES[id] }] }],
           generationConfig: { responseModalities: ["AUDIO"], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: VOICE } } } },
         }),
       });

@@ -1,7 +1,6 @@
 // The fixed things Momwell says aloud at important moments. They are recorded once (scripts/voice-lines.ts) and
 // shipped with the app, so they play at once and never depend on a model call. The words match the screen.
 export const VOICE = "Sulafat";
-export const STYLE = "Say this warmly, calmly and a little slowly, like a kind nurse:";
 
 export const LINES = {
   urgent: "Please get medical care now. If it's an emergency, call nine one one.",
