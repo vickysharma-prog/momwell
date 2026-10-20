@@ -7,7 +7,7 @@ import { demoMother } from "@/lib/demo/create";
 // bar to switch between Maya, Sam and Dr Lee.
 export default async function AppLayout({ children }: LayoutProps<"/">) {
   const { me } = await requireMe();
-  const demo = await demoMother(me.id);
+  const demo = await demoMother(me.demo_family);
   return (
     <AppShell role={me.role} name={me.name} banner={demo ? <DemoBar role={me.role} born={demo.born} /> : null}>
       {children}

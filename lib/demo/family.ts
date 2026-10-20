@@ -31,45 +31,49 @@ const PICKS: [string, "tv_show" | "movie" | "artist"][] = [
 // Fictional numbers (555-0100 to 555-0199 are set aside for fiction), so the warning screen's call buttons show.
 const PHONES: Record<Member, string> = { mom: "5125550142", partner: "5125550117", doctor: "5125550190" };
 
+// Everything that doesn't depend on something else is written at the same time, so a judge waits as little as possible.
 export async function fillFamily(admin: SupabaseClient, id: Record<Member, string>) {
-  for (const m of Object.keys(PHONES) as Member[]) must(await admin.from("profiles").update({ phone: PHONES[m] }).eq("id", id[m]));
   const due = new Date(Date.now() + 13 * 7 * 86_400_000).toISOString().slice(0, 10);
-  must(await admin.from("mothers").insert({ id: id.mom, due_date: due }));
-  must(
-    await admin.from("links").insert([
-      { mother_id: id.mom, person_id: id.partner, kind: "circle", relation: "husband", partner: true, sees: defaultSees({ kind: "circle", partner: true }) },
-      { mother_id: id.mom, person_id: id.doctor, kind: "care_team", relation: "OB-GYN", partner: false, sees: defaultSees({ kind: "care_team" }) },
-    ]),
-  );
-
-  const liked = [];
-  for (const [q, kind] of PICKS) {
-    const [e] = await search(q, 1, `urn:entity:${kind}`);
-    if (e) liked.push({ id: e.entity_id, name: e.name, kind });
-  }
-  must(await admin.from("tastes").insert({ mother_id: id.mom, city: "Austin, TX", diets: ["vegetarian"], liked }));
-
+  const today = new Date().toISOString().slice(0, 10);
+  const hoursAgo = (h: number) => new Date(Date.now() - h * 3_600_000).toISOString();
   const clear = evaluate({ signs: [], bp: { systolic: 118, diastolic: 76 } });
-  must(await admin.from("checkins").insert({ mother_id: id.mom, created_at: new Date(Date.now() - 86_400_000).toISOString(), systolic: 118, diastolic: 76, level: clear.level, reasons: clear.reasons, engine_version: clear.version }));
   const warn = evaluate({ signs: ["headache"], bp: { systolic: 148, diastolic: 94 } });
-  const { data: c } = must(
-    await admin
-      .from("checkins")
-      .insert({ mother_id: id.mom, created_at: new Date(Date.now() - 2 * 3_600_000).toISOString(), signs: ["headache"], systolic: 148, diastolic: 94, note: "Headache since this morning, worse when I stand up.", level: warn.level, reasons: warn.reasons, engine_version: warn.version })
-      .select("id")
-      .single(),
-  );
   // Her last mood check, 16 days ago (so today's is due): a PHQ-9 of 11 that Dr Lee can see.
   const answers = [2, 2, 1, 2, 1, 1, 1, 1, 0];
   const mood = scoreMood(answers);
-  must(await admin.from("moods").insert({ mother_id: id.mom, created_at: new Date(Date.now() - 16 * 86_400_000).toISOString(), kind: mood.kind, answers, score: mood.score, level: mood.level, engine_version: mood.version }));
-  // What Maya asked her circle for: Sam has tonight's feeds; dinner is still open.
-  const today = new Date().toISOString().slice(0, 10);
-  must(
-    await admin.from("asks").insert([
-      { mother_id: id.mom, kind: "night_feeds", note: "", needed_on: today, taken_by: id.partner, taken_at: new Date().toISOString() },
-      { mother_id: id.mom, kind: "meal", needed_on: today, note: "Something warm, vegetarian" },
-    ]),
-  );
-  must(await admin.from("alerts").insert({ mother_id: id.mom, checkin_id: c!.id, level: warn.level, created_at: new Date(Date.now() - 2 * 3_600_000).toISOString() }));
+  // What Maya loves, found in Qloo (cached, so this costs no quota).
+  const liked = (await Promise.all(PICKS.map(async ([q, kind]) => ((e) => (e ? { id: e.entity_id, name: e.name, kind } : null))((await search(q, 1, `urn:entity:${kind}`))[0])))).filter(Boolean);
+
+  const [, , , , , , warned] = await Promise.all([
+    ...(Object.keys(PHONES) as Member[]).map(async (m) => must(await admin.from("profiles").update({ phone: PHONES[m] }).eq("id", id[m]))),
+    (async () => must(await admin.from("mothers").insert({ id: id.mom, due_date: due })))(),
+    (async () =>
+      must(
+        await admin.from("links").insert([
+          { mother_id: id.mom, person_id: id.partner, kind: "circle", relation: "husband", partner: true, sees: defaultSees({ kind: "circle", partner: true }) },
+          { mother_id: id.mom, person_id: id.doctor, kind: "care_team", relation: "OB-GYN", partner: false, sees: defaultSees({ kind: "care_team" }) },
+        ]),
+      ))(),
+    (async () => must(await admin.from("tastes").insert({ mother_id: id.mom, city: "Austin, TX", diets: ["vegetarian"], liked })))(),
+    (async () =>
+      must(
+        await admin
+          .from("checkins")
+          .insert({ mother_id: id.mom, created_at: hoursAgo(2), signs: ["headache"], systolic: 148, diastolic: 94, note: "Headache since this morning, worse when I stand up.", level: warn.level, reasons: warn.reasons, engine_version: warn.version })
+          .select("id")
+          .single(),
+      ))(),
+    (async () => must(await admin.from("checkins").insert({ mother_id: id.mom, created_at: hoursAgo(24), systolic: 118, diastolic: 76, level: clear.level, reasons: clear.reasons, engine_version: clear.version })))(),
+    (async () => must(await admin.from("moods").insert({ mother_id: id.mom, created_at: hoursAgo(16 * 24), kind: mood.kind, answers, score: mood.score, level: mood.level, engine_version: mood.version })))(),
+    // What Maya asked her circle for: Sam has tonight's feeds; dinner is still open.
+    (async () =>
+      must(
+        await admin.from("asks").insert([
+          { mother_id: id.mom, kind: "night_feeds", note: "", needed_on: today, taken_by: id.partner, taken_at: new Date().toISOString() },
+          { mother_id: id.mom, kind: "meal", needed_on: today, note: "Something warm, vegetarian" },
+        ]),
+      ))(),
+  ]);
+  const checkinId = (warned as { data: { id: string } | null }).data!.id;
+  must(await admin.from("alerts").insert({ mother_id: id.mom, checkin_id: checkinId, level: warn.level, created_at: hoursAgo(2) }));
 }

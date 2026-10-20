@@ -23,13 +23,16 @@ export async function createDemoFamily(ipHash: string): Promise<{ family: string
   if (error) throw error;
   const ids = {} as Record<Member, string>;
   try {
-    for (const m of FAMILY) {
-      const { data, error: e } = await admin.auth.admin.createUser({ email: demoEmail(fam.id, m.key), password: crypto.randomUUID() + crypto.randomUUID(), email_confirm: true });
-      if (e) throw e;
-      ids[m.key] = data.user.id;
-      const p = await admin.from("profiles").insert({ id: data.user.id, role: m.role, name: m.name, demo_family: fam.id });
-      if (p.error) throw p.error;
-    }
+    // The three accounts at once.
+    await Promise.all(
+      FAMILY.map(async (m) => {
+        const { data, error: e } = await admin.auth.admin.createUser({ email: demoEmail(fam.id, m.key), password: crypto.randomUUID() + crypto.randomUUID(), email_confirm: true });
+        if (e) throw e;
+        ids[m.key] = data.user.id;
+        const p = await admin.from("profiles").insert({ id: data.user.id, role: m.role, name: m.name, demo_family: fam.id });
+        if (p.error) throw p.error;
+      }),
+    );
     await fillFamily(admin, ids);
   } catch (e) {
     await removeFamily(admin, fam.id, Object.values(ids));
@@ -66,13 +69,12 @@ export async function cleanOldFamilies() {
   return removed;
 }
 
-/** The demo family's mother, for someone signed in as any member of that family; null outside a demo. */
-export async function demoMother(personId: string) {
-  const admin = supabaseAdmin();
-  const { data } = await admin.from("profiles").select("demo_family").eq("id", personId).single();
-  if (!data?.demo_family) return null;
-  const { data: mom } = await admin.from("profiles").select("id").eq("demo_family", data.demo_family).eq("role", "mother").single();
-  if (!mom) return null;
-  const { data: dates } = await admin.from("mothers").select("birth_date").eq("id", mom.id).maybeSingle();
-  return { id: mom.id, born: Boolean(dates?.birth_date) };
+/** The demo family's mother and whether her baby is born, in one query; null outside a demo. */
+export async function demoMother(family: string | null) {
+  if (!family) return null;
+  const { data } = await supabaseAdmin().from("profiles").select("id, mothers(birth_date)").eq("demo_family", family).eq("role", "mother").maybeSingle();
+  if (!data) return null;
+  const m = data.mothers as unknown as { birth_date: string | null } | { birth_date: string | null }[] | null;
+  const born = Array.isArray(m) ? Boolean(m[0]?.birth_date) : Boolean(m?.birth_date);
+  return { id: data.id as string, born };
 }

@@ -36,16 +36,15 @@ const MEMBER = { mother: "mom", circle: "partner", care_team: "doctor" } as cons
 // Switch to another member of the same demo family. Only inside one's own family: the family is read on the server.
 export async function switchDemo(role: keyof typeof MEMBER) {
   const { me } = await requireMe();
-  const { data } = await supabaseAdmin().from("profiles").select("demo_family").eq("id", me.id).single();
-  if (!data?.demo_family || !(role in MEMBER)) redirect("/home");
-  await signInAs(data.demo_family, MEMBER[role]);
+  if (!me.demo_family || !(role in MEMBER)) redirect("/home");
+  await signInAs(me.demo_family, MEMBER[role]);
   redirect("/home?tour=1");
 }
 
 // Move the demo family's story on to six weeks after the birth, or back to 27 weeks pregnant. Only her own family.
 export async function setDemoBorn(born: boolean) {
   const { me } = await requireMe();
-  const mom = await demoMother(me.id);
+  const mom = await demoMother(me.demo_family);
   if (!mom) redirect("/home");
   const birth = born ? new Date(Date.now() - 42 * 86_400_000).toISOString().slice(0, 10) : null;
   await supabaseAdmin().from("mothers").update({ birth_date: birth, updated_at: new Date().toISOString() }).eq("id", mom.id);
