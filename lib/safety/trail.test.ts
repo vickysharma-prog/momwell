@@ -53,3 +53,11 @@ test("a baby check-in says so, calls 911 by name, and its detail follows baby up
   const watch = trail({ source: "tap", subject: "baby", engineVersion: "baby-x", level: "none", reasons: evaluateBaby({ signs: [], temp: { value: 101, unit: "F" } }, 200).reasons, hadBp: false, told: [], seenBy: null });
   assert.ok(watch.some((s) => s.title === "Rule: when to call"));
 });
+
+test("a warning says which call it showed: 911 for breathing, her doctor for a headache, with AWHONN as the source", () => {
+  const breath = from({ signs: ["breathing"] }).find((s) => s.title.startsWith("Which call"))!;
+  assert.equal(breath.title, "Which call: 911");
+  assert.match(breath.link!.label, /AWHONN/);
+  assert.equal(from({ signs: ["headache"] }).find((s) => s.title.startsWith("Which call"))!.title, "Which call: her doctor, now");
+  assert.equal(from({ signs: [] }).some((s) => s.title.startsWith("Which call")), false);
+});

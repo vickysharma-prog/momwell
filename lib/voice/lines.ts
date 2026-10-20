@@ -34,8 +34,10 @@ export type LineId = keyof typeof LINES;
 export const babyLineFor = (level: "urgent" | "call_doctor" | "check" | "none"): LineId => (level === "urgent" ? "baby_urgent" : level === "call_doctor" ? "baby_call" : level === "check" ? "check" : "baby_clear");
 
 // Which line a check-in result speaks. The crisis line comes first when there are thoughts of harm.
-export function lineFor(result: { level: "urgent" | "call_doctor" | "check" | "none"; crisis: boolean; noteUnread: boolean }): LineId {
+// A warning that isn't one of the 911 signs speaks the "call your doctor" line, whatever its level.
+export function lineFor(result: { level: "urgent" | "call_doctor" | "check" | "none"; crisis: boolean; noteUnread: boolean }, call911 = result.level === "urgent"): LineId {
   if (result.crisis) return "crisis";
   if (result.level === "none") return result.noteUnread ? "note" : "clear";
-  return result.level;
+  if (result.level === "check") return "check";
+  return call911 ? "urgent" : "call_doctor";
 }

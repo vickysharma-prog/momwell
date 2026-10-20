@@ -29,3 +29,9 @@ test("a baby result speaks the baby's line", () => {
   assert.equal(babyLineFor("none"), "baby_clear");
   assert.equal(babyLineFor("check"), "check");
 });
+
+test("a warning that isn't a 911 sign speaks the call-your-doctor line", () => {
+  assert.equal(lineFor({ level: "urgent", crisis: false, noteUnread: false }, false), "call_doctor");
+  assert.equal(lineFor({ level: "urgent", crisis: false, noteUnread: false }, true), "urgent");
+  assert.equal(lineFor({ level: "call_doctor", crisis: false, noteUnread: false }, true), "urgent");
+});

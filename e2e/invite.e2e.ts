@@ -7,6 +7,11 @@ import puppeteer, { type Browser, type Page } from "puppeteer-core";
 import { createClient } from "@supabase/supabase-js";
 
 const base = process.env.E2E_URL ?? "http://localhost:3000";
+// A click that lands before React has hydrated the page is lost: wait for the page to go quiet first.
+const settle = (page: Page) => page.waitForNetworkIdle({ idleTime: 400, timeout: 60_000 }).catch(() => {});
+// Clicks go through the DOM: on a phone, a coordinate click on something scrolled to the top of the screen lands on
+// the sticky header instead (its Sign out sits right where a card's Remove does).
+const tap = (page: Page, selector: string) => page.$eval(selector, (el) => (el as HTMLElement).click());
 const chrome = process.env.CHROME_PATH ?? "C:/Program Files/Google/Chrome/Application/chrome.exe";
 const admin = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, { auth: { persistSession: false } });
 const run = crypto.randomUUID().slice(0, 8);
@@ -45,19 +50,23 @@ const text = (page: Page) => page.$eval("main", (m) => (m as HTMLElement).innerT
 test("a mother invites her partner and he joins her circle", async () => {
   const m = await fresh();
   await m.goto(`${base}/signup?role=mother`);
+  await settle(m);
   await signUp(m, "Maya", mom);
   assert.equal(new URL(m.url()).pathname, "/home");
   assert.match(await text(m), /Hi, Maya/);
 
   await m.goto(`${base}/people`);
+
+  await settle(m);
   await m.type("input[name=relation]", "husband");
-  await m.click("input[name=partner]");
-  await Promise.all([m.waitForResponse((r) => r.request().method() === "POST"), m.click("form:has(input[name=relation]) button.btn")]);
+  await tap(m, "input[name=partner]");
+  await Promise.all([m.waitForResponse((r) => r.request().method() === "POST"), tap(m, "form:has(input[name=relation]) button.btn")]);
   await m.waitForFunction(() => document.body.innerText.includes("Partner · waiting"));
 
   const { data: invite } = await admin.from("invites").select("token, from_id").eq("partner", true).eq("relation", "husband").order("created_at", { ascending: false }).limit(1).single();
   const p = await fresh();
   await p.goto(`${base}/join/${invite!.token}`);
+  await settle(p);
   assert.match(await text(p), /Maya invited you to her circle/);
   await Promise.all([p.waitForNavigation(), p.click("a.btn")]);
   assert.equal(await p.$$eval("input[name=role]", (r) => r.map((x) => (x as HTMLInputElement).value).join()), "circle");
@@ -65,21 +74,26 @@ test("a mother invites her partner and he joins her circle", async () => {
   assert.equal(new URL(p.url()).pathname, "/home");
   assert.match(await text(p), /Maya/);
   await p.goto(`${base}/people`);
+  await settle(p);
   assert.match(await text(p), /Maya\s+partner/);
   assert.match(await text(p), /Urgent alerts/);
 
   // The mother takes alerts away: the partner's page no longer lists them.
   await m.reload();
+  await settle(m);
   await m.waitForFunction(() => document.body.innerText.includes("What Sam sees"));
-  await m.click("input[name=alerts]");
-  await Promise.all([m.waitForResponse((r) => r.request().method() === "POST"), m.click("form:has(input[name=alerts]) button.btn-quiet")]);
+  await tap(m, "input[name=alerts]");
+  await Promise.all([m.waitForResponse((r) => r.request().method() === "POST"), tap(m, "form:has(input[name=alerts]) button.btn-quiet")]);
   await p.reload();
+  await settle(p);
   assert.doesNotMatch(await text(p), /Urgent alerts/);
 
   // And removes him: he no longer sees her.
   await m.reload();
-  await Promise.all([m.waitForResponse((r) => r.request().method() === "POST"), m.click("article form button")]);
+  await settle(m);
+  await Promise.all([m.waitForResponse((r) => r.request().method() === "POST"), tap(m, "article form button")]);
   await p.reload();
+  await settle(p);
   assert.match(await text(p), /Nobody yet/);
 });
 
@@ -87,27 +101,32 @@ test("a used invite link says so", async () => {
   const { data } = await admin.from("invites").select("token").not("accepted_by", "is", null).limit(1);
   const page = await fresh();
   await page.goto(`${base}/join/${data?.[0]?.token ?? crypto.randomUUID()}`);
+  await settle(page);
   assert.match(await text(page), /expired or was already used/);
 });
 
 test("signed-out visitors are sent to sign in", async () => {
   const page = await fresh();
   await page.goto(`${base}/home`);
+  await settle(page);
   assert.equal(new URL(page.url()).pathname, "/login");
 });
 
 test("a clinician's invite shows the mother what they will see before she accepts", async () => {
   const doc = await fresh();
   await doc.goto(`${base}/signup?role=care_team`);
+  await settle(doc);
   await signUp(doc, "Dr Lee", `momwell.e2e.doc.${run}@example.com`);
   await doc.goto(`${base}/people`);
+  await settle(doc);
   await doc.type("input[name=relation]", "OB-GYN");
-  await Promise.all([doc.waitForResponse((r) => r.request().method() === "POST"), doc.click("form:has(input[name=relation]) button.btn")]);
+  await Promise.all([doc.waitForResponse((r) => r.request().method() === "POST"), tap(doc, "form:has(input[name=relation]) button.btn")]);
   await doc.waitForFunction(() => document.body.innerText.includes("OB-GYN · waiting"));
 
   const { data } = await admin.from("invites").select("token").eq("relation", "OB-GYN").order("created_at", { ascending: false }).limit(1).single();
   const page = await fresh();
   await page.goto(`${base}/join/${data!.token}`);
+  await settle(page);
   const shown = await text(page);
   assert.match(shown, /Dr Lee invited you to Momwell as their patient/);
   assert.match(shown, /Dr Lee will see[\s\S]*Mood screening/);

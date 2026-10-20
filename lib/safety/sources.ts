@@ -33,6 +33,11 @@ export const SOURCES = {
     url: "https://www.childrenscolorado.org/conditions-and-advice/conditions-and-symptoms/special-topics/emergency-symptoms-not-to-miss/",
     checked: "2026-10-20",
   },
+  awhonnPostBirth: {
+    title: "AWHONN: Save your life, POST-BIRTH warning signs (2023)",
+    url: "https://www.kvhealthcare.org/wp-content/uploads/2023/12/PBWSSaveYourLifeHandout_English.pdf",
+    checked: "2026-10-20",
+  },
   lifeline988: { title: "988 Suicide & Crisis Lifeline", url: "https://988lifeline.org/", checked: "2026-10-19" },
   maternalHotline: {
     title: "HRSA National Maternal Mental Health Hotline",

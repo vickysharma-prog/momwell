@@ -4,9 +4,11 @@ import Link from "next/link";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { useEveAgent } from "eve/react";
+import type { Contact } from "@/lib/people/contacts";
 import type { Reason } from "@/lib/safety/engine";
 import { SIGNS } from "@/lib/safety/signs";
 import { signsInWords } from "@/lib/safety/words";
+import { hush, say } from "@/lib/voice/say";
 import { ResultView } from "./ResultView";
 
 type Pick = { name: string; image: string | null; address?: string | null; askFor?: string[] };
@@ -53,7 +55,7 @@ function Picks({ picks, from }: { picks: Pick[]; from?: string }) {
   );
 }
 
-function ToolResult({ part }: { part: Part }) {
+function ToolResult({ part, contacts }: { part: Part; contacts: Contact[] }) {
   if (part.state !== "output-available") {
     return (
       <p className="flex items-center gap-2 text-sm text-ink-soft">
@@ -63,14 +65,14 @@ function ToolResult({ part }: { part: Part }) {
     );
   }
   const out = part.output as Record<string, unknown>;
-  if (part.toolName === "report_signs") return <ResultView result={out as unknown as SignsOut} />;
+  if (part.toolName === "report_signs") return <ResultView result={out as unknown as SignsOut} contacts={contacts} />;
   if (Array.isArray(out?.picks)) return <Picks picks={out.picks as Pick[]} from={out.from as string | undefined} />;
   return null;
 }
 
 // Talk to Momwell: type or speak. Her words are also scanned in the browser for warning signs, so the list is one
 // tap away even before the model answers.
-export function Companion({ name }: { name: string }) {
+export function Companion({ name, contacts = [] }: { name: string; contacts?: Contact[] }) {
   const agent = useEveAgent();
   const [text, setText] = useState("");
   const [flagged, setFlagged] = useState<string[]>([]);
@@ -91,6 +93,7 @@ export function Companion({ name }: { name: string }) {
     if (!m || agent.status === "resuming") return;
     const hits = signsInWords(m);
     if (hits.length) setFlagged(hits.map((id) => SIGNS.find((s) => s.id === id)!.label));
+    setSlow(false);
     void agent.send(m, busy ? { turnPolicy: "steer" } : undefined);
     setText("");
   }
@@ -110,6 +113,35 @@ export function Companion({ name }: { name: string }) {
   }
 
   const messages = agent.data.messages as unknown as { id: string; role: string; parts: Part[] }[];
+  const last = messages.at(-1);
+  // Thinking until the answer shows something: a streaming turn with nothing in it yet still looks alive.
+  const answered = last?.role === "assistant" && last.parts.some((p) => (p.type === "text" && p.text?.trim()) || p.type === "dynamic-tool");
+  const thinking = busy && !answered;
+
+  // After 25 seconds of thinking, a quiet note, so she's never left wondering.
+  const [slow, setSlow] = useState(false);
+  useEffect(() => {
+    if (!thinking) return;
+    const t = setTimeout(() => setSlow(true), 25_000);
+    return () => clearTimeout(t);
+  }, [thinking]);
+
+  // Momwell's replies are spoken as they finish, never the history a page reloads with. A warning-sign result speaks
+  // its own recorded line instead.
+  const spoken = useRef<string | null>(null);
+  useEffect(() => {
+    if (spoken.current === null || agent.status === "resuming") {
+      spoken.current = last?.id ?? "";
+      if (!last) say(`Hi ${name}. How are you feeling today?`);
+      return;
+    }
+    if (busy || !last || last.role !== "assistant" || last.id === spoken.current) return;
+    spoken.current = last.id;
+    if (last.parts.some((p) => p.type === "dynamic-tool" && p.toolName === "report_signs")) return;
+    const reply = last.parts.filter((p) => p.type === "text").map((p) => p.text ?? "").join(" ").trim();
+    if (reply) say(reply);
+  }, [busy, last, agent.status, name]);
+  useEffect(() => hush, []);
 
   return (
     <div className="flex min-h-[calc(100dvh-14rem)] flex-col gap-4">
@@ -137,14 +169,23 @@ export function Companion({ name }: { name: string }) {
                   </p>
                 ) : part.type === "dynamic-tool" ? (
                   <div key={part.toolCallId ?? i} className="w-full">
-                    <ToolResult part={part} />
+                    <ToolResult part={part} contacts={contacts} />
                   </div>
                 ) : null,
               )}
             </motion.div>
           ))}
         </AnimatePresence>
-        {agent.status === "submitted" && (
+        {thinking && slow && (
+          <p role="status" className="rounded-2xl bg-paper-raised px-4 py-3 text-ink-soft">
+            This is taking longer than usual. If something feels wrong, don’t wait:{" "}
+            <Link href="/check-in" className="font-semibold text-brand underline underline-offset-4">
+              check the warning signs
+            </Link>
+            .
+          </p>
+        )}
+        {thinking && (
           <p className="flex gap-1.5 px-2" aria-label="Momwell is thinking">
             {[0, 1, 2].map((i) => (
               <span key={i} className="size-2 animate-bounce rounded-full bg-brand" style={{ animationDelay: `${i * 120}ms` }} />

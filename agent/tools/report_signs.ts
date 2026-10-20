@@ -1,7 +1,7 @@
 import { defineTool } from "eve/tools";
 import { z } from "zod";
 import { recordCheckIn } from "../../lib/checkin/record.ts";
-import { ACTION } from "../../lib/safety/engine.ts";
+import { actionFor } from "../../lib/safety/tier.ts";
 import { SIGN_IDS, type SignId } from "../../lib/safety/signs.ts";
 import { CRISIS_LINES } from "../../lib/safety/sources.ts";
 import { mother } from "../lib/who.ts";
@@ -27,7 +27,7 @@ export default defineTool({
     const { level, reasons, crisis } = saved.result;
     return {
       level,
-      say: ACTION[level],
+      say: actionFor(saved.result),
       // The whole reasons, with their sources: the app shows the same warning screen as the tap check-in.
       reasons,
       // The model read her words, so they are not an unread note here.

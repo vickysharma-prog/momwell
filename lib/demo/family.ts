@@ -28,7 +28,11 @@ const PICKS: [string, "tv_show" | "movie" | "artist"][] = [
   ["Norah Jones", "artist"],
 ];
 
+// Fictional numbers (555-0100 to 555-0199 are set aside for fiction), so the warning screen's call buttons show.
+const PHONES: Record<Member, string> = { mom: "5125550142", partner: "5125550117", doctor: "5125550190" };
+
 export async function fillFamily(admin: SupabaseClient, id: Record<Member, string>) {
+  for (const m of Object.keys(PHONES) as Member[]) must(await admin.from("profiles").update({ phone: PHONES[m] }).eq("id", id[m]));
   const due = new Date(Date.now() + 13 * 7 * 86_400_000).toISOString().slice(0, 10);
   must(await admin.from("mothers").insert({ id: id.mom, due_date: due }));
   must(

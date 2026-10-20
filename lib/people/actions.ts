@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { defaultSees, SCOPES } from "./access";
 import { requireMe } from "./me";
+import { readPhone } from "./phone";
 
 const inviteInput = z.object({
   // A clinician's form has no kind: their invites are always for a patient.
@@ -50,4 +51,17 @@ export async function setSees(personId: string, form: FormData) {
   const sees = SCOPES.filter((s) => form.get(s) === "on");
   await db.from("links").update({ sees }).eq("mother_id", me.id).eq("person_id", personId);
   revalidatePath("/", "layout");
+}
+
+export type PhoneState = { ok?: boolean; error?: string } | undefined;
+
+// Her own number (or theirs), so a warning screen can call them in one tap. Row-level security: only your own row.
+export async function savePhone(_: PhoneState, form: FormData): Promise<PhoneState> {
+  const { db, me } = await requireMe();
+  const phone = readPhone(String(form.get("phone") ?? ""));
+  if (!phone.ok) return { error: phone.error };
+  const { error } = await db.from("profiles").update({ phone: phone.value }).eq("id", me.id);
+  if (error) return { error: "We couldn't save that number. Please try again." };
+  revalidatePath("/", "layout");
+  return { ok: true };
 }

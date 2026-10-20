@@ -1,22 +1,77 @@
 import Link from "next/link";
+import type { Contact } from "@/lib/people/contacts";
 import { BABY_ACTION } from "@/lib/safety/baby";
 import { ACTION, NOTE_UNREAD, type Result } from "@/lib/safety/engine";
 import { CRISIS_LINES } from "@/lib/safety/sources";
+import { needs911, TIER_SOURCE } from "@/lib/safety/tier";
 import { babyLineFor, lineFor } from "@/lib/voice/lines";
 import { Speak } from "./Speak";
 
-// What she sees after a check-in. A warning sign gets a calm, distinct screen with one clear thing to do.
-export function ResultView({ result, voice = true, baby = false }: { result: Pick<Result, "level" | "reasons" | "crisis" | "noteUnread">; voice?: boolean; baby?: boolean }) {
+// What she sees after a check-in. A warning sign gets a calm, distinct screen with one clear thing to do: 911 only
+// for the signs AWHONN says call 911 for, otherwise her doctor now; her people one tap away; and the words to say.
+export function ResultView({
+  result,
+  voice = true,
+  baby = false,
+  contacts = [],
+  script,
+}: {
+  result: Pick<Result, "level" | "reasons" | "crisis" | "noteUnread">;
+  voice?: boolean;
+  baby?: boolean;
+  contacts?: Contact[];
+  script?: string;
+}) {
   const alarm = result.level === "urgent" || result.level === "call_doctor";
+  const emergency = alarm && (baby ? result.level === "urgent" : needs911(result.reasons));
+  const doctor = contacts.find((c) => c.kind === "care_team");
+  const others = contacts.filter((c) => c !== doctor);
+  const heading = baby ? BABY_ACTION[result.level] : emergency ? "Call 911 now." : alarm ? "Call your doctor now." : result.level === "check" ? "Let’s check that again" : "Thank you for checking in";
+
   return (
     <section className={`settle flex flex-col gap-5 rounded-3xl p-6 ${alarm ? "bg-[var(--alarm-soft)]" : "card"}`} aria-live="assertive">
-      <h2 className="text-3xl font-semibold leading-tight">{baby ? BABY_ACTION[result.level] : alarm ? ACTION[result.level] : result.level === "check" ? "Let’s check that again" : "Thank you for checking in"}</h2>
-      {voice && <Speak line={baby ? babyLineFor(result.level) : lineFor(result)} />}
-      {alarm && (
+      <h2 className="text-3xl font-semibold leading-tight">{heading}</h2>
+      {voice && <Speak line={baby ? babyLineFor(result.level) : lineFor(result, emergency)} />}
+
+      {emergency && (
         <a className="btn calm-glow bg-[var(--alarm)]" href="tel:911">
           Call 911
         </a>
       )}
+      {alarm && !emergency && doctor && !baby && (
+        <a className="btn calm-glow bg-[var(--alarm)]" href={`tel:${doctor.phone}`}>
+          Call {doctor.name}
+        </a>
+      )}
+      {alarm && others.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {others.map((c) => (
+            <a key={c.phone} className="btn-quiet bg-paper-raised" href={`tel:${c.phone}`}>
+              Call {c.name} <span className="ml-1 text-ink-soft">· {c.label}</span>
+            </a>
+          ))}
+          {emergency && doctor && (
+            <a className="btn-quiet bg-paper-raised" href={`tel:${doctor.phone}`}>
+              Call {doctor.name} <span className="ml-1 text-ink-soft">· {doctor.label}</span>
+            </a>
+          )}
+        </div>
+      )}
+      {alarm && !emergency && (
+        <p className="text-lg">
+          {doctor ? "" : "Call your doctor’s office now. "}Can’t reach them? Call 911 or go to the nearest emergency room.{" "}
+          <a className="font-semibold underline underline-offset-4" href="tel:911">
+            Call 911
+          </a>
+        </p>
+      )}
+      {alarm && script && (
+        <div className="rounded-2xl bg-paper-raised p-4">
+          <p className="text-sm font-semibold text-ink-soft">Tell them</p>
+          <p className="text-lg">“{script}”</p>
+        </div>
+      )}
+
       {result.crisis && (
         <div className="flex flex-col gap-3">
           <p className="text-lg">You don’t have to carry this alone. If you might act on these thoughts, call 911 now.</p>
@@ -43,6 +98,11 @@ export function ResultView({ result, voice = true, baby = false }: { result: Pic
             </li>
           ))}
         </ul>
+      )}
+      {alarm && !baby && (
+        <a className="muted text-sm underline" href={TIER_SOURCE.url} target="_blank" rel="noreferrer">
+          When to call 911 and when to call your doctor: {TIER_SOURCE.title}
+        </a>
       )}
       {result.level === "none" && <p className="muted text-lg">{result.noteUnread ? NOTE_UNREAD : ACTION.none}</p>}
       {result.level === "check" && <p className="muted text-lg">{ACTION.check}</p>}

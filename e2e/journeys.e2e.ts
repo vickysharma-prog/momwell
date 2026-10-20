@@ -25,6 +25,8 @@ before(async () => {
   const due = new Date(Date.now() + 10 * 7 * 86_400_000).toISOString().slice(0, 10);
   for (const r of [
     await admin.from("mothers").insert({ id: mom.id, due_date: due }),
+    await admin.from("profiles").update({ phone: "5125550117" }).eq("id", partner.id),
+    await admin.from("profiles").update({ phone: "5125550190" }).eq("id", doctor.id),
     await admin.from("tastes").insert({ mother_id: mom.id, city: "Austin, TX", diets: ["vegetarian"], liked: [{ id: gg.entity_id, name: gg.name, kind: "tv_show" }] }),
   ])
     if (r.error) throw r.error;
@@ -62,7 +64,7 @@ async function checkIn(page: Page, fill: () => Promise<void>) {
 }
 
 test("each person's Today opens with Momwell's guide for them", async () => {
-  await shows(her, "Hi, I'm Momwell");
+  await shows(her, /, Maya. I’m Momwell. How are you feeling today?/);
   await shows(him, "If she ever needs you, you'll see it here first");
   await shows(doc, "Whoever needs a look first is at the top");
 });
@@ -82,7 +84,11 @@ test("she shares her check-ins with her partner; after her next warning sign he 
   assert.ok(data!.sees.includes("checkins"));
 
   await checkIn(her, () => click(her, "input[value=headache]"));
-  await shows(her, "Get medical care now");
+  await shows(her, "Call your doctor now.");
+  // Her doctor is the first button and her partner is one tap away; 911 stays on the screen.
+  assert.equal(await her.$eval("section[aria-live=assertive] a.btn", (a) => [a.textContent, a.getAttribute("href")].join(" ")), "Call Dr Lee tel:5125550190");
+  assert.ok(await her.$("section[aria-live=assertive] a[href='tel:5125550117']"));
+  assert.ok(await her.$("section[aria-live=assertive] a[href='tel:911']"));
   await go(him, "/home");
   await shows(him, "Maya needs you to check on her now");
   await click(him, "main a[href^='/check-in/']");
@@ -137,7 +143,7 @@ test("she tells Momwell in her own words, and the rules answer", async () => {
   await her.waitForSelector("textarea", { timeout: 60_000 });
   await her.type("textarea", "I've had a pounding headache all day and my blood pressure was 150/96");
   await click(her, "button[aria-label=Send]");
-  await shows(her, /Get medical care now|Call your doctor right away/, 120_000);
+  await shows(her, /Call your doctor now|Call 911 now/, 120_000);
 });
 
 test("the landing page leads to the demo", async () => {

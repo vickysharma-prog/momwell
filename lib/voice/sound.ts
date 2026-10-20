@@ -16,6 +16,7 @@ export function setSound(on: boolean) {
   try {
     localStorage.setItem(KEY, on ? "on" : "off");
   } catch {}
+  if (!on && typeof window !== "undefined" && "speechSynthesis" in window) window.speechSynthesis.cancel();
   listeners.forEach((l) => l());
 }
 

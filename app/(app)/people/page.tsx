@@ -1,6 +1,7 @@
 import { headers } from "next/headers";
 import { AppPage } from "@/components/AppPage";
 import { CopyLink } from "@/components/CopyLink";
+import { PhoneForm } from "@/components/people/PhoneForm";
 import { SCOPE_LABEL, SCOPES, type Scope } from "@/lib/people/access";
 import { cancelInvite, createInvite, removeLink, setSees } from "@/lib/people/actions";
 import { requireMe } from "@/lib/people/me";
@@ -11,11 +12,12 @@ type Linked = { mother_id: string; person_id: string; kind: string; relation: st
 export default async function People() {
   const { db, me } = await requireMe();
   const mine = me.role === "mother";
-  const [{ data: links }, { data: invites }] = await Promise.all([
+  const [{ data: links }, { data: invites }, { data: own }] = await Promise.all([
     mine
       ? db.from("links").select("*, other:profiles!links_person_id_fkey(name)").eq("mother_id", me.id).order("created_at")
       : db.from("links").select("*, other:profiles!links_mother_id_fkey(name)").eq("person_id", me.id).order("created_at"),
     db.from("invites").select("token, kind, relation, partner").is("accepted_by", null).gt("expires_at", new Date().toISOString()).order("created_at"),
+    db.from("profiles").select("phone").eq("id", me.id).single(),
   ]);
   const h = await headers();
   const origin = `${h.get("x-forwarded-proto") ?? "http"}://${h.get("host")}`;
@@ -63,8 +65,10 @@ export default async function People() {
           ))}
         </section>
 
+        <div className="flex flex-col gap-6 lg:sticky lg:top-8">
+        <PhoneForm phone={own?.phone ?? null} mother={mine} />
         {me.role !== "circle" && (
-          <section className="card flex flex-col gap-4 lg:sticky lg:top-8">
+          <section className="card flex flex-col gap-4">
             <h2 className="text-2xl">{mine ? "Invite someone" : "Invite a patient"}</h2>
             <form action={createInvite} className="flex flex-col gap-3">
               {mine && (
@@ -94,6 +98,7 @@ export default async function People() {
             ))}
           </section>
         )}
+        </div>
       </div>
     </AppPage>
   );
