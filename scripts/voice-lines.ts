@@ -4,8 +4,9 @@ import { execFileSync } from "node:child_process";
 import { writeFileSync, rmSync } from "node:fs";
 import { LINES, VOICE, type LineId } from "../lib/voice/lines.ts";
 
-// Same voice on each model; each has its own free-tier quota, so a busy one hands over to the next.
-const MODELS = ["gemini-3.8-flash-tts", "gemini-3.1-flash-tts-preview", "gemini-2.5-flash-preview-tts", "gemini-2.5-pro-preview-tts"];
+// One model, so every line sounds the same: a busy model is waited out, never swapped for another (other TTS models
+// give the same voice name a different sound). TTS_MODEL overrides.
+const MODELS = [process.env.TTS_MODEL ?? "gemini-3.8-flash-tts"];
 const ids = (process.argv.length > 2 ? process.argv.slice(2) : Object.keys(LINES)) as LineId[];
 const path = (name: string) => new URL(`../public/voice/${name}`, import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1");
 
