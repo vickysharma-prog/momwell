@@ -31,7 +31,8 @@ async function fetchQloo(path: string, params: Params): Promise<unknown> {
   );
   for (let attempt = 0; ; attempt++) {
     await slot();
-    const res = await fetch(`${BASE}${path}?${query}`, { headers: { "X-Api-Key": process.env.QLOO_API_KEY! } });
+    // Never hang a screen on Qloo: twelve seconds, then the caller shows what it has.
+    const res = await fetch(`${BASE}${path}?${query}`, { headers: { "X-Api-Key": process.env.QLOO_API_KEY! }, signal: AbortSignal.timeout(12_000) });
     if (res.ok) return res.json();
     if (res.status === 429 && attempt < 4) {
       await new Promise((r) => setTimeout(r, 1000 * 2 ** attempt));

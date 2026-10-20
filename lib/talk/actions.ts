@@ -27,5 +27,10 @@ export async function talkPicks(what: Want): Promise<Picks> {
   const { db, me } = await requireMe();
   const { data } = await db.from("tastes").select("city, diets, liked").eq("mother_id", me.id).maybeSingle();
   const taste = data as Taste | null;
-  return what === "food" ? foodPicks(taste) : what === "music" ? musicPicks(taste) : showPicks(taste);
+  // If Qloo is slow or down, say so kindly instead of leaving her waiting.
+  try {
+    return await (what === "food" ? foodPicks(taste) : what === "music" ? musicPicks(taste) : showPicks(taste));
+  } catch {
+    return { picks: [], next: "Qloo is slow right now. Your For you page has your picks." };
+  }
 }
