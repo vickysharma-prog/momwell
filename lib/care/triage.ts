@@ -28,7 +28,9 @@ export const STATUS: Record<Status, { label: string; tone: "alarm" | "honey" | "
 
 export function statusOf(p: PatientFacts, now: Date): { status: Status; reason: string } {
   const alerts = (n: number) => `${n} urgent ${n === 1 ? "alert" : "alerts"} not yet seen`;
-  if (p.unseenUrgent > 0) return { status: "urgent", reason: p.babyUrgent === p.unseenUrgent ? `Baby: ${alerts(p.unseenUrgent)}` : alerts(p.unseenUrgent) };
+  // Every unseen alert is counted, so the reason matches the "Mark seen" button on her page.
+  const more = p.unseenCall ? ` · ${p.unseenCall} more to call her about` : "";
+  if (p.unseenUrgent > 0) return { status: "urgent", reason: (p.babyUrgent === p.unseenUrgent ? `Baby: ${alerts(p.unseenUrgent)}` : alerts(p.unseenUrgent)) + more };
   if (p.unseenCall > 0) return { status: "call", reason: p.babyCall === p.unseenCall ? "Baby: told to call the baby’s doctor, not yet seen" : "Blood pressure in the call-her range, not yet seen" };
   if (p.lastMood && p.lastMood.level !== "none" && now.getTime() - Date.parse(p.lastMood.at) < MOOD_EVERY_DAYS * 86_400_000)
     return { status: "call", reason: p.lastMood.level === "urgent" ? "Mood check: thoughts of self-harm" : "Mood check suggests a talk (PHQ-9 of 10 or more)" };

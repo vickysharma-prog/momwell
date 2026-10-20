@@ -56,3 +56,7 @@ test("an alert about her baby says so, not blood pressure", () => {
   assert.equal(statusOf({ ...base, unseenCall: 2, babyCall: 1 }, now).reason, "Blood pressure in the call-her range, not yet seen");
   assert.equal(statusOf({ ...base, unseenUrgent: 2, babyUrgent: 1 }, now).reason, "2 urgent alerts not yet seen");
 });
+
+test("an urgent patient's reason counts her other unseen alerts too", () => {
+  assert.equal(statusOf({ ...base, unseenUrgent: 2, unseenCall: 1 }, now).reason, "2 urgent alerts not yet seen · 1 more to call her about");
+});

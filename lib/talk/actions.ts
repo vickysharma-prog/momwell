@@ -1,6 +1,5 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { recordCheckIn, type Recorded } from "@/lib/checkin/record";
 import { requireMe } from "@/lib/people/me";
 import type { Reading } from "@/lib/safety/engine";
@@ -18,7 +17,7 @@ export async function confirmTalk(signs: SignId[], reading: Reading): Promise<Re
   const bp = reading.bp && Number.isInteger(reading.bp.systolic) && Number.isInteger(reading.bp.diastolic) ? reading.bp : undefined;
   const temp = reading.temp && Number.isFinite(reading.temp.value) && (reading.temp.unit === "F" || reading.temp.unit === "C") ? reading.temp : undefined;
   const saved = await recordCheckIn(me.id, { signs, bp, temp }, "words");
-  revalidatePath("/", "layout");
+  // No page refresh: it would rebuild Talk and wipe her conversation. Her other pages load fresh when she opens them.
   return saved;
 }
 

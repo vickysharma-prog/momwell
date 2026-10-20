@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { readPhone } from "./phone.ts";
+import { formatPhone, readPhone } from "./phone.ts";
 
 test("a number as people type it becomes one tel: can dial", () => {
   assert.deepEqual(readPhone("(512) 555-0142"), { ok: true, value: "5125550142" });
@@ -17,4 +17,11 @@ test("letters, too few or too many digits are refused", () => {
   assert.equal(readPhone("12345").ok, false);
   assert.equal(readPhone("1234567890123456").ok, false);
   assert.equal(readPhone("555-0142; drop").ok, false);
+});
+
+test("a stored US number reads the way people write it", () => {
+  assert.equal(formatPhone("5125550142"), "(512) 555-0142");
+  assert.equal(formatPhone("+15125550142"), "(512) 555-0142");
+  assert.equal(formatPhone("+447700900123"), "+447700900123");
+  assert.deepEqual(readPhone(formatPhone("5125550142")), { ok: true, value: "5125550142" });
 });

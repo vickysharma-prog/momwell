@@ -27,8 +27,25 @@ export const AVOID_TAGS = [
   "urn:tag:keyword:qloo:tragedy",
 ] as const;
 
-const AVOID = new Set<string>(AVOID_TAGS);
-export const isSafe = (e: Entity) => !(e.tags ?? []).some((t) => AVOID.has(tagId(t)));
+// What comes back is checked by the theme itself, whichever of Qloo's namespaces carries it (Ginny & Georgia has
+// keyword:media:self_harm, not keyword:qloo:self_harm), and for a few themes the request above doesn't name.
+export const AVOID_THEMES = new Set([
+  ...AVOID_TAGS.map((t) => t.split(":").at(-1)!),
+  "self_harm",
+  "teen_pregnancy",
+  "unwanted_pregnancy",
+  "miscarriage",
+  "stillbirth",
+  "infertility",
+  "child_death",
+  "death_of_child",
+]);
+const KINDS = new Set(["keyword", "theme", "subgenre", "genre", "plot"]);
+export const isSafe = (e: Entity) =>
+  !(e.tags ?? []).some((t) => {
+    const parts = tagId(t).split(":");
+    return KINDS.has(parts[2]) && AVOID_THEMES.has(parts.at(-1)!);
+  });
 
 export type Kind = "tv_show" | "movie";
 

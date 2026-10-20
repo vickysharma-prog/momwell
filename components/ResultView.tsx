@@ -17,12 +17,14 @@ export function ResultView({
   baby = false,
   contacts = [],
   script,
+  told = [],
 }: {
   result: Pick<Result, "level" | "reasons" | "crisis" | "noteUnread">;
   voice?: boolean;
   baby?: boolean;
   contacts?: Contact[];
   script?: string;
+  told?: string[];
 }) {
   const alarm = result.level === "urgent" || result.level === "call_doctor";
   const emergency = alarm && (baby ? result.level === "urgent" : needs911(result.reasons));
@@ -59,7 +61,21 @@ export function ResultView({
           )}
         </div>
       )}
-      {alarm && !emergency && (
+      {alarm && told.length > 0 && (
+        <p className="font-medium">
+          We let {told.length === 1 ? told[0] : `${told.slice(0, -1).join(", ")} and ${told.at(-1)}`} know.
+        </p>
+      )}
+      {alarm && baby && !emergency && (
+        <p className="text-lg">
+          If it feels like an emergency,{" "}
+          <a className="font-semibold underline underline-offset-4" href="tel:911">
+            call 911
+          </a>
+          .
+        </p>
+      )}
+      {alarm && !emergency && !baby && (
         <p className="text-lg">
           {doctor ? "" : "Call your doctor’s office now. "}Can’t reach them? Call 911 or go to the nearest emergency room.{" "}
           <a className="font-semibold underline underline-offset-4" href="tel:911">

@@ -2,7 +2,8 @@ import { headers } from "next/headers";
 import { AppPage } from "@/components/AppPage";
 import { CopyLink } from "@/components/CopyLink";
 import { PhoneForm } from "@/components/people/PhoneForm";
-import { SCOPE_LABEL, SCOPES, type Scope } from "@/lib/people/access";
+import { formatPhone } from "@/lib/people/phone";
+import { SCOPE_LABEL, SHOWN_SCOPES, shownOnly, type Scope } from "@/lib/people/access";
 import { cancelInvite, createInvite, removeLink, setSees } from "@/lib/people/actions";
 import { requireMe } from "@/lib/people/me";
 
@@ -49,7 +50,7 @@ export default async function People() {
                 <form action={setSees.bind(null, p.person_id)} className="flex flex-col gap-3">
                   <p className="text-sm text-ink-soft">What {p.other.name} sees</p>
                   <div className="flex flex-wrap gap-2">
-                    {SCOPES.map((s) => (
+                    {SHOWN_SCOPES.map((s) => (
                       <label key={s} className="btn-quiet min-h-10 cursor-pointer gap-2 text-sm has-[:checked]:border-brand has-[:checked]:bg-brand-soft">
                         <input type="checkbox" name={s} defaultChecked={p.sees.includes(s)} className="accent-[var(--brand)]" />
                         {SCOPE_LABEL[s]}
@@ -59,14 +60,14 @@ export default async function People() {
                   <button className="btn-quiet self-start">Save</button>
                 </form>
               ) : (
-                <p className="text-sm text-ink-soft">Sharing with you: {p.sees.map((s) => SCOPE_LABEL[s]).join(", ") || "nothing yet"}</p>
+                <p className="text-sm text-ink-soft">Sharing with you: {shownOnly(p.sees).map((s) => SCOPE_LABEL[s]).join(", ") || "nothing yet"}</p>
               )}
             </article>
           ))}
         </section>
 
         <div className="flex flex-col gap-6 lg:sticky lg:top-8">
-        <PhoneForm phone={own?.phone ?? null} mother={mine} />
+        <PhoneForm phone={own?.phone ? formatPhone(own.phone) : null} mother={mine} />
         {me.role !== "circle" && (
           <section className="card flex flex-col gap-4">
             <h2 className="text-2xl">{mine ? "Invite someone" : "Invite a patient"}</h2>

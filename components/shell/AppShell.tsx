@@ -81,14 +81,14 @@ export function AppShell({ role, name, banner, children }: { role: Role; name: s
         <div className="mt-auto -mb-5">
           <SoundToggle labelled />
         </div>
-        <div className="flex items-center gap-3 rounded-2xl border border-line p-3">
+        <div className="flex items-center gap-2.5 rounded-2xl border border-line p-3">
           <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-honey font-semibold text-[#1f1a2e]">{name.slice(0, 1).toUpperCase()}</span>
           <span className="flex min-w-0 flex-col">
             <span className="truncate font-medium">{name}</span>
-            <span className="truncate text-sm text-ink-soft">{ROLE_LABEL[role]}</span>
+            <span className="whitespace-nowrap text-sm text-ink-soft">{ROLE_LABEL[role]}</span>
           </span>
           <form action={signOut} className="ml-auto">
-            <button className="whitespace-nowrap rounded-full px-2 py-1 text-sm text-ink-soft underline-offset-4 hover:underline">Sign out</button>
+            <button className="whitespace-nowrap rounded-full px-1 py-1 text-sm text-ink-soft underline-offset-4 hover:underline">Sign out</button>
           </form>
         </div>
       </aside>

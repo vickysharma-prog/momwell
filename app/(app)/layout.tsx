@@ -9,7 +9,7 @@ export default async function AppLayout({ children }: LayoutProps<"/">) {
   const { me } = await requireMe();
   const demo = await demoMother(me.demo_family);
   return (
-    <AppShell role={me.role} name={me.name} banner={demo ? <DemoBar role={me.role} born={demo.born} /> : null}>
+    <AppShell role={me.role} name={me.name} banner={demo ? <DemoBar role={me.role} born={demo.born} family={me.demo_family!} /> : null}>
       {children}
     </AppShell>
   );

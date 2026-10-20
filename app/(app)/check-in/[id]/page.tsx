@@ -15,14 +15,20 @@ export default async function CheckInResult({ params }: PageProps<"/check-in/[id
   const { data } = await db.from("checkins").select("id, mother_id, level, reasons, note, source, subject, engine_version, systolic").eq("id", id).maybeSingle();
   if (!data) notFound();
   const reasons = data.reasons as Reason[];
-  const [contacts, { data: dates }] = await Promise.all([callList(db, data.mother_id, me.id), db.from("mothers").select("due_date, birth_date").eq("id", data.mother_id).maybeSingle()]);
+  const [contacts, { data: dates }, { data: links }] = await Promise.all([
+    callList(db, data.mother_id, me.id),
+    db.from("mothers").select("due_date, birth_date").eq("id", data.mother_id).maybeSingle(),
+    // Who her alert went to: everyone she shares urgent alerts with (only she can read the full list).
+    data.mother_id === me.id ? db.from("links").select("sees, other:profiles!links_person_id_fkey(name)").eq("mother_id", me.id) : Promise.resolve({ data: [] }),
+  ]);
+  const told = ((links ?? []) as unknown as { sees: string[]; other: { name: string } | null }[]).filter((l) => l.sees.includes("alerts") && l.other).map((l) => l.other!.name);
   const now = new Date();
   // Only her own warning gets the words to say; it's about her baby if the check-in is.
   const script = data.mother_id === me.id && data.subject !== "baby" ? tellThem(stageFrom(dates ?? {}, now), dates ?? {}, dates?.due_date ? weeksPregnant(dates.due_date, now) : null, reasons) : undefined;
 
   return (
     <AppPage className="max-w-2xl">
-      <ResultView result={{ level: data.level, reasons, crisis: reasons.some((r) => r.id === "harm_thoughts"), noteUnread: Boolean(data.note) }} voice={data.mother_id === me.id} baby={data.subject === "baby"} contacts={contacts} script={script} />
+      <ResultView result={{ level: data.level, reasons, crisis: reasons.some((r) => r.id === "harm_thoughts"), noteUnread: Boolean(data.note) }} voice={data.mother_id === me.id} baby={data.subject === "baby"} contacts={contacts} script={script} told={told} />
       {data.note && (
         <section className="card">
           <p className="muted mb-1 text-sm">{data.mother_id === me.id ? "You wrote" : "She wrote"}</p>

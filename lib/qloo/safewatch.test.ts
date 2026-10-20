@@ -22,3 +22,12 @@ test("every theme we leave out is a real tag id", () => {
   for (const t of AVOID_TAGS) assert.match(t, /^urn:tag:(keyword|theme|subgenre|genre):(qloo|media):[a-z_]+$/, t);
   assert.equal(new Set(AVOID_TAGS).size, AVOID_TAGS.length);
 });
+
+test("a theme is caught whichever namespace carries it: Ginny & Georgia's self-harm and teen pregnancy", () => {
+  assert.equal(isSafe(show("Ginny & Georgia", "urn:tag:keyword:media:self_harm", "urn:tag:genre:qloo:comedy")), false);
+  assert.equal(isSafe(show("x", "urn:tag:keyword:media:teen_pregnancy")), false);
+  assert.equal(isSafe(show("x", "urn:tag:keyword:media:abortion")), false);
+  assert.equal(isSafe(show("x", "urn:tag:keyword:media:domestic_violence")), false);
+  // An audience or style tag with a similar word is not a theme.
+  assert.equal(isSafe(show("x", "urn:tag:audience:qloo:grief")), true);
+});

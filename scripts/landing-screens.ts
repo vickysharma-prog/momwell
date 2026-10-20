@@ -1,5 +1,5 @@
 // Real screens of the app for the landing page, from the walkthrough family (synthetic data, no Qloo results):
-// Maya's warning screen, Maya talking to Momwell, and Dr Lee's view of the alert. Needs the app running and
+// Maya's warning screen, Maya talking to Momwell, and Dr Lee's queue. Needs the app running and
 // scripts/seed-demo.ts run first. Run: node --env-file=.env.local scripts/landing-screens.ts [base url]
 import puppeteer, { type Page } from "puppeteer-core";
 
@@ -31,17 +31,16 @@ try {
   await lee.goto(`${base}/home`, { waitUntil: "networkidle0" });
   await lee.screenshot({ path: out("care-team.png"), clip: { x: 0, y: 0, width: 1280, height: 640 } });
 
-  // The talk screen needs a live model answer; when the model is slow, the other screens still stand.
+  // Talk answers at once: she says it, confirms it, and the rules decide.
   await maya.goto(`${base}/talk`, { waitUntil: "networkidle0" });
-  await maya.type("textarea[name], textarea", "My head has been pounding since this morning and it won't stop. My blood pressure is 148 over 94.");
+  await maya.type("textarea", "My head has been pounding since this morning and it won't stop. My blood pressure is 148 over 94.");
   await maya.keyboard.press("Enter");
-  await maya
-    .waitForFunction(() => document.querySelectorAll("main section[aria-live=assertive]").length > 0 && !document.querySelector("[aria-label='Momwell is thinking']"), { polling: 500, timeout: 120_000 })
-    .then(async () => {
-      await new Promise((r) => setTimeout(r, 4000));
-      await maya.screenshot({ path: out("talk.png"), clip: { x: 260, y: 0, width: 1020, height: 820 } });
-    })
-    .catch(() => console.log("talk screen skipped: the model didn't answer in time"));
+  await maya.waitForFunction(() => [...document.querySelectorAll("button")].some((b) => b.textContent === "Yes, it’s happening"), { polling: 200, timeout: 30_000 });
+  await maya.$$eval("button", (bs) => (bs.find((b) => b.textContent === "Yes, it’s happening") as HTMLButtonElement).click());
+  await until(maya, "main section[aria-live=assertive]");
+  await new Promise((r) => setTimeout(r, 1500));
+  await maya.evaluate(() => window.scrollTo(0, 0));
+  await maya.screenshot({ path: out("talk.png"), clip: { x: 260, y: 0, width: 1020, height: 820 } });
 
   console.log("screens made");
 } finally {

@@ -8,7 +8,7 @@ export const NEXT_STEPS_SOURCE = SOURCES.cdcHearHerTips;
 
 export function nextSteps({ companion }: { companion?: string }): Step[] {
   return [
-    { text: "Say that you’re pregnant, or were pregnant in the past year. The words below help." },
+    { text: "Say that you’re pregnant, or were pregnant in the past year. The words in “Tell them” help." },
     { text: companion ? `Ask ${companion} to come with you, to help you remember and ask your questions.` : "Bring a friend or family member, to help you remember and ask your questions." },
     { text: "Tell them every medicine you take or took recently, and any high blood pressure, diabetes or problems in this pregnancy or birth." },
     { text: "Write down what they tell you, and ask again about anything you don’t understand." },

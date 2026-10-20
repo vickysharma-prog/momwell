@@ -7,3 +7,9 @@ export function readPhone(raw: string): { ok: true; value: string | null } | { o
   if (!/^\+?[0-9]{7,15}$/.test(value)) return { ok: false, error: "That number looks too short or too long." };
   return { ok: true, value };
 }
+
+/** How a stored number reads: "(512) 555-0142" for a US number, else as stored. */
+export function formatPhone(value: string) {
+  const d = value.replace(/^\+?1(?=\d{10}$)/, "");
+  return /^\d{10}$/.test(d) ? `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}` : value;
+}

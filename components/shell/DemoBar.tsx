@@ -17,7 +17,7 @@ const NEXT: Record<Role, { text: string; href: string; cta: string }> = {
 };
 
 // Shown only inside a demo family: who you're seeing Momwell as, a one-click switch, and the next thing to try.
-export function DemoBar({ role, born }: { role: Role; born: boolean }) {
+export function DemoBar({ role, born, family }: { role: Role; born: boolean; family: string }) {
   const next = NEXT[role];
   return (
     <div className="border-b border-line bg-brand-soft print:hidden">
@@ -47,7 +47,7 @@ export function DemoBar({ role, born }: { role: Role; born: boolean }) {
           {next.cta}
         </Link>
       </div>
-      <DemoTour role={role} born={born} />
+      <DemoTour role={role} born={born} family={family} />
     </div>
   );
 }

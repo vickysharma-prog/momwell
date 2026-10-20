@@ -44,12 +44,12 @@ const PILLARS = [
   {
     name: "Her body",
     title: "Warning signs, checked every day",
-    text: "A 30-second check-in, tapped or spoken. The CDC’s 15 urgent maternal warning signs, blood pressure and fever are checked by tested rules, never guessed by AI. A warning gets one calm screen and 911.",
+    text: "A 30-second check-in, tapped or spoken. The CDC’s 15 urgent maternal warning signs, blood pressure and fever are checked by tested rules, never guessed by AI. A warning gets one calm screen with the right call: 911 for the signs that need it, her doctor now for the rest, her partner one tap away, and the words to say.",
   },
   {
     name: "Her mind",
     title: "Never alone with it",
-    text: "When she’s struggling, Momwell listens. Thoughts of harm bring the 988 Lifeline and the National Maternal Mental Health Hotline at once, and the people she chose are told she needs them.",
+    text: "When she’s struggling, Momwell listens. A mood check every two weeks, with the questions doctors use. Thoughts of harm bring the 988 Lifeline and the National Maternal Mental Health Hotline at once, and the people she chose are told she needs them.",
   },
   {
     name: "Her people",
@@ -90,7 +90,7 @@ export function Pillars() {
 const JOURNEY = [
   { stage: "Pregnancy", photo: PHOTOS.nursery, points: ["A daily check-in by week", "Warning signs and blood pressure, checked by rules", "Food that’s safe to enjoy, shows that won’t upset her"] },
   { stage: "Birth", photo: PHOTOS.bedside, points: ["A calm birth playlist from the music she loves", "Her partner and family told the moment she needs them", "Her care team in the loop"] },
-  { stage: "The first year", photo: PHOTOS.firstYear, points: ["Warning signs after birth, watched for the full year", "Help with how she feels, and crisis lines one tap away", "Her circle, on the same page"] },
+  { stage: "The first year", photo: PHOTOS.firstYear, points: ["Warning signs after birth, watched for the full year", "Her baby’s warning signs too, from the AAP", "A mood check every two weeks, crisis lines one tap away"] },
 ];
 
 // Three photographs edge to edge, the page as the canvas: what Momwell does at each stage, written on the moment.
@@ -142,15 +142,15 @@ export function SeeItWork() {
       <div className="reveal mt-14 grid gap-6 lg:grid-cols-[1.2fr_1fr]">
         <figure className="flex flex-col gap-3">
           <div className="overflow-hidden rounded-3xl border border-line bg-paper-raised shadow-[0_30px_80px_-40px_rgba(31,26,46,0.4)]">
-            <Image src="/screens/talk.png" alt="Maya tells Momwell her head has been pounding and gives her blood pressure; Momwell shows: get medical care now, call 911, with each reason and its CDC or ACOG source" width={2040} height={1640} className="h-auto w-full" />
+            <Image src="/screens/talk.png" alt="Maya tells Momwell her head has been pounding and gives her blood pressure; Momwell asks if it is happening now, then shows: call your doctor now, with Call Dr Lee, Call Sam, 911 if she can't reach them, and each reason with its source" width={2040} height={1640} className="h-auto w-full" />
           </div>
-          <figcaption className="text-sm text-ink-soft">Her words, the rules’ answer: one step, 911, and every reason with its source.</figcaption>
+          <figcaption className="text-sm text-ink-soft">Her words, answered at once: the rules decide, she gets the right call, and every reason has its source.</figcaption>
         </figure>
         <figure className="flex flex-col gap-3">
           <div className="overflow-hidden rounded-3xl border border-line bg-paper-raised shadow-[0_30px_80px_-40px_rgba(31,26,46,0.4)]">
-            <Image src="/screens/care-team.png" alt="Dr Lee's view in Momwell: Maya needs you to check on her now, with what she reported and a Seen button" width={2560} height={1280} className="h-auto w-full" />
+            <Image src="/screens/care-team.png" alt="Dr Lee's patient queue in Momwell: Maya first, urgent and not seen, with her last check-in, blood pressure, and Call and Open buttons" width={2560} height={1280} className="h-auto w-full" />
           </div>
-          <figcaption className="text-sm text-ink-soft">Her OB-GYN’s screen: the alert, what she reported, and “Seen”.</figcaption>
+          <figcaption className="text-sm text-ink-soft">Her OB-GYN’s queue: who needs a look first, and why, with her number one tap away.</figcaption>
         </figure>
       </div>
       <div className="reveal mt-14 grid gap-6 rounded-3xl border border-line bg-paper-raised p-8 sm:grid-cols-3 sm:p-10">
@@ -191,7 +191,7 @@ export function MadeForHer() {
           </div>
           <div className="rounded-3xl bg-white/10 p-7 ring-1 ring-white/15">
             <p className="text-sm font-semibold tracking-wider uppercase opacity-70">Food near her</p>
-            <p className="mt-3 text-lg leading-relaxed">Vegetarian places in Austin that fit her taste, each with what to ask for: “Choose cooked rolls: raw fish is on the FDA’s avoid list in pregnancy.”</p>
+            <p className="mt-3 text-lg leading-relaxed">Vegetarian places in Austin that fit her taste, each with what to ask for: “Ask that soft cheeses are made with pasteurized milk.” No bars, no steakhouses, no mall food courts.</p>
           </div>
           <div className="rounded-3xl bg-white/10 p-7 ring-1 ring-white/15">
             <p className="text-sm font-semibold tracking-wider uppercase opacity-70">Her birth playlist</p>
@@ -205,8 +205,8 @@ export function MadeForHer() {
 
 export function Audiences() {
   const cards = [
-    { id: "families", photo: PHOTOS.partner, eyebrow: "For partners and families", title: "Know how to help, and know the moment she needs you.", points: ["Alerts when she reports a warning sign", "What she chooses to share, nothing more", "One place for the whole family"] },
-    { id: "clinicians", photo: PHOTOS.clinician, eyebrow: "For OB-GYNs, midwives and doulas", title: "See what matters between visits.", points: ["Alerts with the reason, and a “Seen” she can see", "Her check-ins, blood pressure and own words", "Invite a patient, or be invited by one"] },
+    { id: "families", photo: PHOTOS.partner, eyebrow: "For partners and families", title: "Know how to help, and know the moment she needs you.", points: ["Alerts when she reports a warning sign, and her number one tap away", "Her warning signs, and which ones mean 911", "Take a meal or the night feeds off her plate"] },
+    { id: "clinicians", photo: PHOTOS.clinician, eyebrow: "For OB-GYNs, midwives and doulas", title: "See what matters between visits.", points: ["A queue with the reason each patient needs a look", "Her check-ins, blood pressure, mood checks and own words", "Call her in one tap, and a visit summary to print"] },
   ];
   return (
     <section className="grid md:grid-cols-2">
@@ -302,6 +302,9 @@ export function Footer() {
         <div className="flex flex-col gap-2 text-sm text-ink-soft">
           <p className="font-semibold text-ink">Sources</p>
           <a className="underline-offset-4 hover:underline" href="https://www.cdc.gov/hearher/maternal-warning-signs/index.html" target="_blank" rel="noreferrer">CDC Hear Her: urgent maternal warning signs</a>
+          <a className="underline-offset-4 hover:underline" href="https://www.kvhealthcare.org/wp-content/uploads/2023/12/PBWSSaveYourLifeHandout_English.pdf" target="_blank" rel="noreferrer">AWHONN: POST-BIRTH warning signs, when to call 911</a>
+          <a className="underline-offset-4 hover:underline" href="https://www.acog.org/clinical/clinical-guidance/clinical-practice-guideline/articles/2023/06/screening-and-diagnosis-of-mental-health-conditions-during-pregnancy-and-postpartum" target="_blank" rel="noreferrer">ACOG: mental health screening in pregnancy and after</a>
+          <a className="underline-offset-4 hover:underline" href="https://www.healthychildren.org/English/health-issues/conditions/fever/pages/When-to-Call-the-Pediatrician.aspx" target="_blank" rel="noreferrer">AAP: when to call the pediatrician</a>
           <a className="underline-offset-4 hover:underline" href="https://www.fda.gov/food/consumers/people-risk-foodborne-illness" target="_blank" rel="noreferrer">FDA: food safety in pregnancy</a>
           <p>Photography from Unsplash.</p>
         </div>

@@ -1,6 +1,6 @@
 import { Screen } from "@/components/Screen";
 import Link from "next/link";
-import { SCOPE_LABEL } from "@/lib/people/access";
+import { SCOPE_LABEL, shownOnly } from "@/lib/people/access";
 import { acceptInvite } from "@/lib/people/actions";
 import { previewInvite } from "@/lib/people/invite";
 import { supabaseServer } from "@/lib/supabase/server";
@@ -30,7 +30,7 @@ export default async function Join({ params, searchParams }: PageProps<"/join/[t
             <div className="card">
               <p className="mb-2 font-medium">{invite.from_name} will see</p>
               <ul className="muted list-disc pl-5">
-                {invite.sees.map((s) => (
+                {shownOnly(invite.sees).map((s) => (
                   <li key={s}>{SCOPE_LABEL[s]}</li>
                 ))}
               </ul>

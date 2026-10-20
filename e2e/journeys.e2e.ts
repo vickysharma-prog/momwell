@@ -120,6 +120,8 @@ test("asks: he takes groceries and finishes; she takes back one nobody needs; a 
     const a = as.find((x) => (x as HTMLElement).innerText.includes("Milk and bread"))!;
     [...a.querySelectorAll("button")].find((b) => b.textContent === "Done")!.click();
   });
+  // Wait for his Done to land before she looks.
+  await shows(him, /Done lately: .* by Sam/);
   await go(her, "/help");
   await shows(her, /Done lately: .* by Sam/);
 });
@@ -143,6 +145,8 @@ test("she tells Momwell in her own words: it answers at once, asks before record
   await her.waitForSelector("textarea", { timeout: 60_000 });
   const say = async (words: string) => {
     await her.type("textarea", words);
+    // The box is a controlled input: send only once React shows every letter typed (a person types slower than this).
+    await her.waitForFunction((w) => (document.querySelector("textarea") as HTMLTextAreaElement).value === w, { polling: 50, timeout: 10_000 }, words);
     await click(her, "button[aria-label=Send]");
   };
   // How she feels: a kind answer and a next step, at once, with no model.

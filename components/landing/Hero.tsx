@@ -123,8 +123,10 @@ export function Hero() {
             <p className="text-xs font-semibold tracking-widest text-ink-soft uppercase">Built on public guidance from</p>
             <p className="flex flex-wrap gap-x-6 gap-y-1 text-[15px] font-semibold text-ink">
               <span>CDC Hear Her</span>
+              <span>AWHONN</span>
               <span>ACOG</span>
               <span>NIH</span>
+              <span>AAP</span>
               <span>FDA</span>
               <span>988 Lifeline</span>
             </p>

@@ -3,23 +3,24 @@ import { Logo } from "@/components/Logo";
 import { StartDemo } from "@/components/StartDemo";
 
 const PEOPLE = [
-  { name: "Maya", who: "27 weeks pregnant, in Austin", what: "Her daily check-in, a warning sign from this morning, a talk with Momwell, and picks made for her through Qloo." },
-  { name: "Sam", who: "Maya’s partner", what: "The alert he got this morning, without the private detail, and what Maya shares with him." },
-  { name: "Dr Lee", who: "Maya’s OB-GYN", what: "What Maya reported, her blood pressure and her own words, and marking the alert seen." },
+  { name: "Maya", who: "27 weeks pregnant, in Austin", what: "Her check-in, Talk to Momwell, a mood check, picks made for her through Qloo, and her baby six weeks after the birth." },
+  { name: "Sam", who: "Maya’s partner", what: "The alert he got, without the private detail, her number one tap away, and her asks to take on." },
+  { name: "Dr Lee", who: "Maya’s OB-GYN", what: "Her patients as a queue, Maya first and why, her blood pressure and mood, and a call in one tap." },
 ];
 
 // The way in for judges and the curious: a fresh demo family of their own, with synthetic data, in one click.
 export default function Demo() {
   return (
-    <main className="mx-auto flex min-h-dvh max-w-5xl flex-col gap-10 px-5 py-10 sm:px-8">
+    <main className="mx-auto flex min-h-dvh max-w-5xl flex-col gap-8 px-5 py-10 sm:px-8">
       <Link href="/" aria-label="Momwell home">
         <Logo size={32} />
       </Link>
       <header className="flex max-w-2xl flex-col gap-4">
         <h1 className="text-5xl leading-tight">Meet Maya’s family.</h1>
         <p className="text-xl leading-relaxed text-ink-soft">
-          One click opens Momwell as Maya, with her partner and her OB-GYN a tap away. It’s your own copy with made-up data, so try anything: it’s cleared after two days.
+          One click opens Momwell as Maya. A six-step story under the bar walks you through it, and you can switch to Sam or Dr Lee, or to six weeks after the birth, with one tap. Your own copy with made-up data, cleared after two days.
         </p>
+        <StartDemo />
       </header>
       <div className="grid gap-4 md:grid-cols-3">
         {PEOPLE.map((p) => (
@@ -31,7 +32,6 @@ export default function Demo() {
           </article>
         ))}
       </div>
-      <StartDemo />
       <p className="text-sm text-ink-soft">Momwell does not give medical advice. In an emergency, call 911.</p>
     </main>
   );

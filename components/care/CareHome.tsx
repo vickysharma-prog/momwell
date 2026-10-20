@@ -31,7 +31,7 @@ export async function CareHome({ db, me }: { db: SupabaseClient; me: { id: strin
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div className="flex flex-col gap-1">
           <h1 className="text-4xl sm:text-5xl">Patients</h1>
-          <p className="text-lg text-ink-soft">Sorted by who needs you first. Warning signs are decided by the CDC, ACOG and NIH rules, not by AI.</p>
+          <p className="text-lg text-ink-soft">Sorted by who needs you first. Warning signs are decided by rules from the CDC, AWHONN, ACOG, NIH and AAP, not by AI.</p>
         </div>
         <Link href="/people" className="btn-quiet">
           Invite a patient

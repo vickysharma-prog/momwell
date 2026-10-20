@@ -121,7 +121,7 @@ export function Companion({ name, contacts = [] }: { name: string; contacts?: Co
 
   function send(message: string) {
     const m = message.trim();
-    if (!m || agent.status === "resuming") return;
+    if (!m) return;
     setText("");
     setSlow(false);
     const r = route(m);
@@ -135,6 +135,8 @@ export function Companion({ name, contacts = [] }: { name: string; contacts?: Co
       return;
     }
     // Anything else: the menu at once, and the companion answers too if it can.
+    // The rules never wait on the companion; only this hand-off needs its session ready.
+    if (agent.status === "resuming") return add(me, { kind: "say", ...MENU });
     add(me, { kind: "say", ...MENU }, { kind: "agent", from: messages.length });
     void agent.send(m, busy ? { turnPolicy: "steer" } : undefined);
   }
@@ -305,9 +307,10 @@ export function Companion({ name, contacts = [] }: { name: string; contacts?: Co
 
       <form
         className="sticky bottom-[6.5rem] flex items-end gap-2 rounded-[28px] border border-line bg-paper-raised p-2 shadow-[0_16px_40px_-24px_rgba(31,26,46,0.4)] md:bottom-6"
+        // Read what is in the box, not the last render: a fast typist (or a test) can send before React catches up.
         onSubmit={(e) => {
           e.preventDefault();
-          send(text);
+          send((e.currentTarget.elements.namedItem("message") as HTMLTextAreaElement).value);
         }}
       >
         <textarea
@@ -316,11 +319,12 @@ export function Companion({ name, contacts = [] }: { name: string; contacts?: Co
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) {
               e.preventDefault();
-              send(text);
+              send(e.currentTarget.value);
             }
           }}
           rows={1}
           placeholder="Tell Momwell how you are…"
+          name="message"
           aria-label="Message"
           className="max-h-40 min-h-12 flex-1 resize-none bg-transparent px-4 py-3 text-lg outline-none"
         />
@@ -332,7 +336,7 @@ export function Companion({ name, contacts = [] }: { name: string; contacts?: Co
             </svg>
           </button>
         )}
-        <button aria-label="Send" disabled={!text.trim()} className="flex size-12 shrink-0 items-center justify-center rounded-full bg-brand text-on-brand transition active:scale-95 disabled:opacity-40">
+        <button aria-label="Send" className="flex size-12 shrink-0 items-center justify-center rounded-full bg-brand text-on-brand transition active:scale-95 disabled:opacity-40">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M5 12h14M13 6l6 6-6 6" />
           </svg>

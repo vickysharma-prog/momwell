@@ -6,20 +6,21 @@ import { demoGo } from "@/lib/demo/actions";
 import { stepDone, STEPS, type StepKey } from "@/lib/demo/tour";
 import type { Role } from "@/lib/people/signup";
 
-const KEY = "momwell-tour";
-const OPEN = "momwell-tour-open";
+// Progress is kept per demo family, so a fresh family starts the story from the beginning.
+const keyFor = (family: string) => `momwell-tour-${family}`;
+const openKey = (family: string) => `momwell-tour-open-${family}`;
 const listeners = new Set<() => void>();
-const read = (): string => {
+const read = (family: string): string => {
   try {
-    return localStorage.getItem(KEY) ?? "[]";
+    return localStorage.getItem(keyFor(family)) ?? "[]";
   } catch {
     return "[]";
   }
 };
-const mark = (k: StepKey) => {
+const mark = (family: string, k: StepKey) => {
   try {
-    const done: string[] = JSON.parse(read());
-    if (!done.includes(k)) localStorage.setItem(KEY, JSON.stringify([...done, k]));
+    const done: string[] = JSON.parse(read(family));
+    if (!done.includes(k)) localStorage.setItem(keyFor(family), JSON.stringify([...done, k]));
   } catch {}
   listeners.forEach((l) => l());
 };
@@ -30,25 +31,25 @@ const subscribe = (l: () => void) => {
 
 // The story in six steps, under the demo bar: each one tap away (as the right person, at the right point in the
 // story), ticked off as it's seen.
-export function DemoTour({ role, born }: { role: Role; born: boolean }) {
+export function DemoTour({ role, born, family }: { role: Role; born: boolean; family: string }) {
   const path = usePathname();
-  const done: string[] = JSON.parse(useSyncExternalStore(subscribe, read, () => "[]"));
+  const done: string[] = JSON.parse(useSyncExternalStore(subscribe, () => read(family), () => "[]"));
   const [open, setOpen] = useState(true);
 
   useEffect(() => {
     const k = stepDone(path, role, born);
-    if (k) mark(k);
-  }, [path, role, born]);
+    if (k) mark(family, k);
+  }, [path, role, born, family]);
 
   useEffect(() => {
     try {
-      if (localStorage.getItem(OPEN) === "no") setOpen(false);
+      if (localStorage.getItem(openKey(family)) === "no") setOpen(false);
     } catch {}
-  }, []);
+  }, [family]);
   const toggle = () => {
     setOpen(!open);
     try {
-      localStorage.setItem(OPEN, open ? "no" : "yes");
+      localStorage.setItem(openKey(family), open ? "no" : "yes");
     } catch {}
   };
 

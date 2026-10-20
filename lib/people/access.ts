@@ -2,6 +2,10 @@
 // The same list is the check constraint in db/migrations/001_people.sql.
 export const SCOPES = ["tasks", "alerts", "checkins", "mood", "baby", "appointments", "medicines"] as const;
 export type Scope = (typeof SCOPES)[number];
+// The scopes she sees and sets today. Appointments and medicines stay in the database for what comes next, kept as they
+// are when she saves.
+export const SHOWN_SCOPES = SCOPES.filter((s) => s !== "appointments" && s !== "medicines");
+export const shownOnly = (sees: readonly Scope[]) => sees.filter((s) => (SHOWN_SCOPES as readonly string[]).includes(s));
 
 export type Link = { kind: "circle"; partner: boolean } | { kind: "care_team" };
 

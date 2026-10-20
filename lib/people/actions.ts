@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { defaultSees, SCOPES } from "./access";
+import { defaultSees, SCOPES, SHOWN_SCOPES } from "./access";
 import { requireMe } from "./me";
 import { readPhone } from "./phone";
 
@@ -48,7 +48,9 @@ export async function removeLink(motherId: string, personId: string) {
 
 export async function setSees(personId: string, form: FormData) {
   const { db, me } = await requireMe();
-  const sees = SCOPES.filter((s) => form.get(s) === "on");
+  const { data: link } = await db.from("links").select("sees").eq("mother_id", me.id).eq("person_id", personId).maybeSingle();
+  const kept = ((link?.sees ?? []) as string[]).filter((s) => !(SHOWN_SCOPES as readonly string[]).includes(s));
+  const sees = SCOPES.filter((s) => form.get(s) === "on" || kept.includes(s));
   await db.from("links").update({ sees }).eq("mother_id", me.id).eq("person_id", personId);
   revalidatePath("/", "layout");
 }
