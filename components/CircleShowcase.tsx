@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { QlooBadge } from "@/components/QlooBadge";
 import { foodPicks, showPicks } from "@/lib/qloo/picks";
 import type { Taste } from "@/lib/taste/taste";
 
@@ -13,6 +14,7 @@ const ICON = {
 } as const;
 
 function Tile({ href, title, status, tone, icon }: { href: string; title: string; status: React.ReactNode; tone: keyof typeof TONE; icon: keyof typeof ICON }) {
+  const qloo = icon === "qloo";
   const inner = (
     <>
       <span className={`flex size-10 items-center justify-center rounded-2xl ${TONE[tone]}`} aria-hidden="true">
@@ -23,6 +25,7 @@ function Tile({ href, title, status, tone, icon }: { href: string; title: string
       <span className="flex flex-col gap-1">
         <span className="font-semibold leading-snug">{title}</span>
         <span className="text-sm leading-snug text-ink-soft">{status}</span>
+        {qloo && <QlooBadge className="mt-1 self-start" />}
       </span>
     </>
   );

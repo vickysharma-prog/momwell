@@ -50,6 +50,6 @@ test("her shelves come from Qloo, gentle and safe", async () => {
   assert.doesNotMatch(shown, /Everwood/);
   assert.match(shown, /Food near Austin/);
   assert.match(shown, /FDA: People at risk/);
-  assert.ok((shown.match(/From Qloo/gi) ?? []).length >= 3);
+  assert.ok((shown.match(/Powered by Qloo/gi) ?? []).length >= 3);
   assert.ok((await page.$$("main article")).length >= 12, "shelves are filled");
 });

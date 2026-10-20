@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { useEveAgent } from "eve/react";
+import { QlooBadge } from "@/components/QlooBadge";
 import type { Contact } from "@/lib/people/contacts";
 import type { Reading, Reason } from "@/lib/safety/engine";
 import { SIGN_PHRASE, type SignId } from "@/lib/safety/signs";
@@ -54,7 +55,7 @@ function Picks({ picks, from }: { picks: Pick[]; from?: string }) {
           </article>
         ))}
       </div>
-      {from && <p className="text-xs font-semibold tracking-wider text-ink-soft uppercase">From {from}</p>}
+      {from === "Qloo" && <QlooBadge className="self-start" />}
     </div>
   );
 }

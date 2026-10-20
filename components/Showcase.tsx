@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { QlooBadge } from "@/components/QlooBadge";
 import { safeWatch } from "@/lib/qloo/safewatch";
 import { idsOf, type Taste } from "@/lib/taste/taste";
 
-type Tile = { href: string; title: string; status: React.ReactNode; tone: "brand" | "honey" | "alarm" | "soft"; icon: string };
+type Tile = { href: string; title: string; status: React.ReactNode; tone: "brand" | "honey" | "alarm" | "soft"; icon: string; qloo?: boolean };
 
 const TONE: Record<Tile["tone"], string> = {
   brand: "bg-brand text-on-brand",
@@ -34,6 +35,7 @@ function TileCard({ t }: { t: Tile }) {
       <span className="flex flex-col gap-1">
         <span className="font-semibold leading-snug">{t.title}</span>
         <span className="text-sm leading-snug text-ink-soft">{t.status}</span>
+        {t.qloo && <QlooBadge className="mt-1 self-start" />}
       </span>
     </Link>
   );
@@ -71,6 +73,7 @@ export function Showcase({ db, facts }: { db: SupabaseClient; facts: ShowcaseFac
       ),
       tone: "honey",
       icon: "qloo",
+      qloo: true,
     },
     { href: "/help", title: "Help from your people", status: facts.helpLine, tone: "soft", icon: "help" },
     { href: "/mood", title: "Mood check", status: facts.moodDue ? "Due now · two minutes, the questions doctors use" : `Done ${facts.lastMood} · next in two weeks`, tone: facts.moodDue ? "alarm" : "soft", icon: "mood" },

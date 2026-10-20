@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Guide } from "@/components/Guide";
+import { QlooBadge } from "@/components/QlooBadge";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { AppPage } from "@/components/AppPage";
@@ -10,10 +11,6 @@ import { safeWatch } from "@/lib/qloo/safewatch";
 import type { Entity } from "@/lib/qloo/api";
 import { requireMe } from "@/lib/people/me";
 import { idsOf, type Taste } from "@/lib/taste/taste";
-
-function FromQloo() {
-  return <p className="text-xs font-semibold tracking-wider text-ink-soft uppercase">From Qloo</p>;
-}
 
 function Tile({ e, children }: { e: Entity; children?: React.ReactNode }) {
   const img = e.properties?.image?.url;
@@ -43,7 +40,7 @@ function Shelf({ title, note, items, render }: { title: string; note: string; it
           <h2 className="text-2xl">{title}</h2>
           <p className="text-ink-soft">{note}</p>
         </div>
-        <FromQloo />
+        <QlooBadge />
       </div>
       {items.length ? (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">

@@ -124,7 +124,7 @@ test("asks: he takes groceries and finishes; she takes back one nobody needs; a 
 
   await go(him, "/help");
   // The label is in capitals (CSS), and innerText reads it as shown.
-  await shows(him, /Places she’d love · from Qloo/i, 90_000);
+  await shows(him, /Places she’d love\s+Powered by Qloo/i, 90_000);
   const groceries = await him.$$eval("main article", (as) => as.findIndex((a) => (a as HTMLElement).innerText.includes("Milk and bread")));
   await him.$$eval("main article", (as, i) => (as[i].querySelector("button.btn") as HTMLButtonElement).click(), groceries);
   await shows(him, "You’re on it");
@@ -179,7 +179,7 @@ test("she tells Momwell in her own words: it answers at once, asks before record
   // Shows from the companion's Qloo tool, at once; anything else gets the menu at once.
   await say("Find me something calm to watch");
   await shows(her, "Here are a few gentle ones, picked through Qloo from what you love.", 15_000);
-  await shows(her, /From Qloo/i, 30_000);
+  await shows(her, /Powered by Qloo/i, 30_000);
   await say("what's the weather like?");
   await shows(her, "What would help right now?", 15_000);
 });

@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { Guide } from "@/components/Guide";
+import { QlooBadge } from "@/components/QlooBadge";
 import { Suspense } from "react";
 import { AppPage } from "@/components/AppPage";
 import { AskForm } from "@/components/help/AskForm";
@@ -24,7 +25,10 @@ async function MealIdeas({ db, motherId }: { db: SupabaseClient; motherId: strin
   if (!meals.length) return null;
   return (
     <div className="flex flex-col gap-2 rounded-2xl bg-paper p-4">
-      <p className="text-xs font-semibold tracking-wider text-ink-soft uppercase">Places she’d love · from Qloo</p>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <p className="text-xs font-semibold tracking-wider text-ink-soft uppercase">Places she’d love</p>
+        <QlooBadge />
+      </div>
       {meals.map((m) => (
         <div key={m.entity.entity_id}>
           <p className="font-medium">{m.entity.name}</p>
