@@ -18,7 +18,7 @@ before(async () => {
   await admin.from("demo_families").update({ created_at: old }).eq("id", family);
   const shift = async (table: string, col: string) => {
     const { data } = await admin.from(table).select(`id, ${col}`).eq("mother_id", ids.mom);
-    for (const r of (data ?? []) as Record<string, string>[]) await admin.from(table).update({ [col]: new Date(Date.parse(r[col]) - 3 * DAY).toISOString() }).eq("id", r.id);
+    for (const r of (data ?? []) as unknown as Record<string, string>[]) await admin.from(table).update({ [col]: new Date(Date.parse(r[col]) - 3 * DAY).toISOString() }).eq("id", r.id);
   };
   await shift("alerts", "created_at");
   await shift("checkins", "created_at");
