@@ -36,7 +36,9 @@ async function signIn(who: Person): Promise<Page> {
   return page;
 }
 // Polls on a timer: a page that isn't painting (headless, behind another tab) never runs animation-frame polling.
-const until = (page: Page, selector: string) => page.waitForFunction((q) => !!document.querySelector(q), { polling: 200, timeout: 60_000 }, selector);
+// Two minutes: right after a code change the dev server compiles the check-in route on first visit, which on Windows
+// can take over a minute. Production never compiles.
+const until = (page: Page, selector: string) => page.waitForFunction((q) => !!document.querySelector(q), { polling: 200, timeout: 120_000 }, selector);
 const text = (page: Page) => page.$eval("main", (m) => (m as HTMLElement).innerText);
 // The result arrives by a client-side redirect after the server action, so wait for the result itself.
 async function done(page: Page) {

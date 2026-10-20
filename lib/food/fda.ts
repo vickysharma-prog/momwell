@@ -22,10 +22,18 @@ const RULES: { id: string; match: RegExp; text: string }[] = [
 // Only what kind of place it is counts: its cuisines and restaurant genres, not every dish or offering Qloo lists.
 const KIND = /^urn:tag:(cuisine:qloo|genre:place:restaurant):/;
 
-/** The FDA notes for a place, from its tag ids: the most important first, at most `max`. */
-export function notesFor(tagIds: string[], max = 2): FoodNote[] {
+// What her diet already rules out, so a note about it would only be noise: no meat or fish for a vegetarian, and no
+// cheese or eggs either for a vegan.
+const SKIP: Partial<Record<Diet, string[]>> = {
+  vegetarian: ["raw_fish", "seafood", "cold_cuts", "meat"],
+  vegan: ["raw_fish", "seafood", "cold_cuts", "meat", "soft_cheese", "eggs"],
+};
+
+/** The FDA notes for a place, from its tag ids, for her diet: the most important first, at most `max`. */
+export function notesFor(tagIds: string[], max = 2, diets: Diet[] = []): FoodNote[] {
   const words = tagIds.filter((t) => KIND.test(t)).map((t) => t.split(":").slice(3).join(":")).join(" ");
-  return RULES.filter((r) => r.match.test(words)).slice(0, max).map(({ id, text }) => ({ id, text }));
+  const skip = new Set(diets.flatMap((d) => SKIP[d] ?? []));
+  return RULES.filter((r) => !skip.has(r.id) && r.match.test(words)).slice(0, max).map(({ id, text }) => ({ id, text }));
 }
 
 // Diets she can pick, as Qloo's dietary tags.

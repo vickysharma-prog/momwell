@@ -55,7 +55,7 @@ export async function nearbyFood(likedIds: string[], location: string, diets: Di
       .filter((e) => isMealPlace(e) && fitsDiet(e, diets))
       .sort((a, b) => (veg ? vegFirst(a) - vegFirst(b) : 0))
       .slice(0, take);
-    if (eat.length) return eat.map((entity) => ({ entity, notes: notesFor((entity.tags ?? []).map(tagId)) }));
+    if (eat.length) return eat.map((entity) => ({ entity, notes: notesFor((entity.tags ?? []).map(tagId), 2, diets) }));
   }
   return [];
 }

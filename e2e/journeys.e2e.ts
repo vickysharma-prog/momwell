@@ -50,7 +50,7 @@ async function signIn(who: Person): Promise<Page> {
   return page;
 }
 const shows = (page: Page, text: string | RegExp, timeout = 60_000) =>
-  page.waitForFunction((t, re) => (re ? new RegExp(t).test(document.body.innerText) : document.body.innerText.includes(t)), { polling: 250, timeout }, text instanceof RegExp ? text.source : text, text instanceof RegExp);
+  page.waitForFunction((t, flags) => (flags !== null ? new RegExp(t, flags).test(document.body.innerText) : document.body.innerText.includes(t)), { polling: 250, timeout }, text instanceof RegExp ? text.source : text, text instanceof RegExp ? text.flags : null);
 const go = (page: Page, path: string) => page.goto(`${base}${path}`, { timeout: 90_000 });
 const click = (page: Page, selector: string) => page.$eval(selector, (el) => (el as HTMLElement).click());
 async function checkIn(page: Page, fill: () => Promise<void>) {
@@ -105,7 +105,8 @@ test("asks: he takes groceries and finishes; she takes back one nobody needs; a 
   await her.waitForFunction(() => !document.body.innerText.includes("Not needed after all"), { timeout: 60_000, polling: 250 });
 
   await go(him, "/help");
-  await shows(him, "Places she’d love · from Qloo", 90_000);
+  // The label is in capitals (CSS), and innerText reads it as shown.
+  await shows(him, /Places she’d love · from Qloo/i, 90_000);
   const groceries = await him.$$eval("main article", (as) => as.findIndex((a) => (a as HTMLElement).innerText.includes("Milk and bread")));
   await him.$$eval("main article", (as, i) => (as[i].querySelector("button.btn") as HTMLButtonElement).click(), groceries);
   await shows(him, "You’re on it");

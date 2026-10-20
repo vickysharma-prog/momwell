@@ -40,3 +40,11 @@ test("each note appears once, and none names an illness", () => {
   for (const x of notesFor(["sushi", "deli", "mexican", "steak", "brunch", "juice", "salad", "seafood"].map((w) => `urn:tag:cuisine:qloo:${w}`), 10))
     assert.doesNotMatch(x.text, /listeria|toxoplasm|salmonella|infection|miscarriage/i);
 });
+
+test("her diet drops notes about food she doesn't eat", () => {
+  const burgers = ["urn:tag:genre:place:restaurant:vegan", "urn:tag:genre:place:restaurant:hamburger", "urn:tag:genre:place:restaurant:breakfast"];
+  assert.deepEqual(notesFor(burgers, 3).map((n) => n.id), ["meat", "eggs", "sprouts"]);
+  assert.deepEqual(notesFor(burgers, 3, ["vegetarian"]).map((n) => n.id), ["eggs", "sprouts"]);
+  assert.deepEqual(notesFor(burgers, 3, ["vegan"]).map((n) => n.id), ["sprouts"]);
+  assert.deepEqual(notesFor(["urn:tag:cuisine:qloo:sushi"], 2, ["halal"]).map((n) => n.id), ["raw_fish"]);
+});
