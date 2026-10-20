@@ -7,8 +7,9 @@ import { useEveAgent } from "eve/react";
 import type { Contact } from "@/lib/people/contacts";
 import type { Reading, Reason } from "@/lib/safety/engine";
 import { SIGN_PHRASE, type SignId } from "@/lib/safety/signs";
-import { confirmTalk } from "@/lib/talk/actions";
-import { askAbout, NOT_NOW, REPLIES, type Chip } from "@/lib/talk/replies";
+import type { Picks as QlooPicks } from "@/lib/qloo/picks";
+import { confirmTalk, talkPicks } from "@/lib/talk/actions";
+import { askAbout, MENU, NOT_NOW, PICKS_SAY, REPLIES, type Chip } from "@/lib/talk/replies";
 import { route } from "@/lib/talk/router";
 import type { LineId } from "@/lib/voice/lines";
 import { ResultView } from "./ResultView";
@@ -79,6 +80,7 @@ type Turn =
   | { id: number; kind: "ask"; signs: SignId[]; reading: Reading; text: string; state: "open" | "saving" | "done" }
   | { id: number; kind: "crisis"; signs: SignId[] }
   | { id: number; kind: "result"; result: SignsOut }
+  | { id: number; kind: "picks"; data: QlooPicks | null }
   | { id: number; kind: "agent"; from: number };
 // A turn before it has an id, kept per kind.
 type NewTurn = { [K in Turn["kind"]]: Omit<Extract<Turn, { kind: K }>, "id"> }[Turn["kind"]];
@@ -109,7 +111,12 @@ export function Companion({ name, contacts = [] }: { name: string; contacts?: Co
     end.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [turns.length, messages.length, agent.status]);
 
-  const add = (...t: NewTurn[]) => setTurns((all) => [...all, ...t.map((x) => ({ ...x, id: nextId.current++ }) as Turn)]);
+  // Ids are given here, not inside the state update, which React may run twice.
+  const add = (...t: NewTurn[]) => {
+    const added = t.map((x) => ({ ...x, id: nextId.current++ }) as Turn);
+    setTurns((all) => [...all, ...added]);
+    return added;
+  };
   const settle = (id: number, state: "saving" | "done") => setTurns((all) => all.map((t) => (t.id === id && t.kind === "ask" ? { ...t, state } : t)));
 
   function send(message: string) {
@@ -122,7 +129,13 @@ export function Companion({ name, contacts = [] }: { name: string; contacts?: Co
     if (r.kind === "crisis") return add(me, { kind: "crisis", signs: r.signs });
     if (r.kind === "confirm") return add(me, { kind: "ask", signs: r.signs, reading: r.reading, text: askAbout([...r.signs.map(label), ...readingWords(r.reading)]), state: "open" });
     if (r.kind === "feeling") return add(me, { kind: "say", ...REPLIES[r.feeling] });
-    add(me, { kind: "agent", from: messages.length });
+    if (r.kind === "qloo") {
+      const id = add(me, { kind: "say", text: PICKS_SAY[r.what], chips: [] }, { kind: "picks", data: null })[2].id;
+      void talkPicks(r.what).then((data) => setTurns((all) => all.map((t) => (t.id === id && t.kind === "picks" ? { ...t, data } : t))));
+      return;
+    }
+    // Anything else: the menu at once, and the companion answers too if it can.
+    add(me, { kind: "say", ...MENU }, { kind: "agent", from: messages.length });
     void agent.send(m, busy ? { turnPolicy: "steer" } : undefined);
   }
 
@@ -232,6 +245,23 @@ export function Companion({ name, contacts = [] }: { name: string; contacts?: Co
                   <ResultView result={{ level: "urgent", reasons: [], crisis: true, noteUnread: false }} contacts={contacts} />
                 </div>
               )}
+              {t.kind === "picks" &&
+                (t.data ? (
+                  t.data.picks.length ? (
+                    <div className="w-full">
+                      <Picks picks={t.data.picks} from={t.data.from} />
+                    </div>
+                  ) : (
+                    <Link href="/taste" className="btn-quiet min-h-11 bg-paper-raised text-sm">
+                      Tell me what you love first
+                    </Link>
+                  )
+                ) : (
+                  <p className="flex items-center gap-2 text-sm text-ink-soft">
+                    <span className="size-3 animate-spin rounded-full border-2 border-line border-t-brand" aria-hidden="true" />
+                    Looking in Qloo…
+                  </p>
+                ))}
               {t.kind === "result" && (
                 <div className="w-full">
                   <ResultView result={t.result} contacts={contacts} />
@@ -270,7 +300,6 @@ export function Companion({ name, contacts = [] }: { name: string; contacts?: Co
             ))}
           </p>
         )}
-        {agent.error && <p role="alert" className="error">Something went wrong. Please try again, or use the check-in list.</p>}
         <div ref={end} />
       </div>
 

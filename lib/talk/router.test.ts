@@ -34,17 +34,19 @@ test("readings: blood pressure only beside its words; a temperature in F or C", 
   assert.deepEqual(readingIn("I have a temperature of 101.2"), { temp: { value: 101.2, unit: "F" } });
   assert.deepEqual(readingIn("fever 38.4 C"), { temp: { value: 38.4, unit: "C" } });
   assert.equal(route("my blood pressure is 150/96").kind, "confirm");
-  assert.equal(route("my blood pressure is 118/76 today").kind, "agent");
+  assert.equal(route("my blood pressure is 118/76 today").kind, "menu");
 });
 
-test("feelings get an answer at once; Qloo requests and Spanish go to the companion", () => {
+test("feelings get an answer at once; Qloo requests go to the Qloo tools; anything else gets the menu", () => {
   assert.deepEqual(route("I feel so anxious and alone today"), { kind: "feeling", feeling: "low" });
   assert.deepEqual(route("I can't sleep"), { kind: "feeling", feeling: "sleep" });
   assert.deepEqual(route("can I take ibuprofen?"), { kind: "feeling", feeling: "medical" });
   assert.deepEqual(route("hi Momwell"), { kind: "feeling", feeling: "greet" });
   assert.deepEqual(route("thank you"), { kind: "feeling", feeling: "thanks" });
   assert.deepEqual(route("I'm good today"), { kind: "feeling", feeling: "good" });
-  assert.equal(route("I can't sleep, find me something calm to watch").kind, "agent");
-  assert.equal(route("where can I get dinner near me?").kind, "agent");
-  assert.equal(route("Hola, ¿qué puedo ver esta noche?").kind, "agent");
+  assert.deepEqual(route("I can't sleep, find me something calm to watch"), { kind: "qloo", what: "shows" });
+  assert.deepEqual(route("where can I get dinner near me?"), { kind: "qloo", what: "food" });
+  assert.deepEqual(route("music for my hospital bag"), { kind: "qloo", what: "music" });
+  assert.deepEqual(route("Hola, ¿qué puedo ver esta noche?"), { kind: "menu" });
+  assert.deepEqual(route("what is the weather like?"), { kind: "menu" });
 });

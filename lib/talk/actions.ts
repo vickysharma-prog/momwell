@@ -4,7 +4,10 @@ import { revalidatePath } from "next/cache";
 import { recordCheckIn, type Recorded } from "@/lib/checkin/record";
 import { requireMe } from "@/lib/people/me";
 import type { Reading } from "@/lib/safety/engine";
+import { foodPicks, musicPicks, showPicks, type Picks } from "@/lib/qloo/picks";
 import { SIGN_IDS, type SignId } from "@/lib/safety/signs";
+import type { Taste } from "@/lib/taste/taste";
+import type { Want } from "./router";
 
 // She confirmed what the word scan found: the same save as every check-in, so the rules, alerts, the 911 tier and
 // "How this was decided" all apply. Her words are not stored as a note: she confirmed each sign instead.
@@ -17,4 +20,12 @@ export async function confirmTalk(signs: SignId[], reading: Reading): Promise<Re
   const saved = await recordCheckIn(me.id, { signs, bp, temp }, "words");
   revalidatePath("/", "layout");
   return saved;
+}
+
+// Shows, food or music she asked for: the companion's own Qloo tools, called straight away (cached, so instant).
+export async function talkPicks(what: Want): Promise<Picks> {
+  const { db, me } = await requireMe();
+  const { data } = await db.from("tastes").select("city, diets, liked").eq("mother_id", me.id).maybeSingle();
+  const taste = data as Taste | null;
+  return what === "food" ? foodPicks(taste) : what === "music" ? musicPicks(taste) : showPicks(taste);
 }

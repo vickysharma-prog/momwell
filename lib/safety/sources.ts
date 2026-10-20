@@ -38,6 +38,16 @@ export const SOURCES = {
     url: "https://www.kvhealthcare.org/wp-content/uploads/2023/12/PBWSSaveYourLifeHandout_English.pdf",
     checked: "2026-10-20",
   },
+  cdcHearHerTips: {
+    title: "CDC Hear Her: Pregnant and postpartum women, talking with your provider (9 Jul 2024)",
+    url: "https://www.cdc.gov/hearher/pregnant-postpartum/index.html",
+    checked: "2026-10-21",
+  },
+  nhsBreathing: {
+    title: "NHS: Breathing exercises for stress (reviewed 12 Jun 2026)",
+    url: "https://www.nhs.uk/mental-health/self-help/guides-tools-and-activities/breathing-exercises-for-stress/",
+    checked: "2026-10-21",
+  },
   lifeline988: { title: "988 Suicide & Crisis Lifeline", url: "https://988lifeline.org/", checked: "2026-10-19" },
   maternalHotline: {
     title: "HRSA National Maternal Mental Health Hotline",

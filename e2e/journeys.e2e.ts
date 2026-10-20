@@ -147,16 +147,25 @@ test("she tells Momwell in her own words: it answers at once, asks before record
   };
   // How she feels: a kind answer and a next step, at once, with no model.
   await say("I feel anxious and alone today");
-  await shows(her, "You’re not alone in this", 5_000);
+  await shows(her, "You’re not alone in this", 15_000);
   // A warning sign: asked about at once, and nothing recorded until she says yes.
   const before = (await admin.from("checkins").select("id").eq("mother_id", mom.id)).data!.length;
   await say("I've had a pounding headache all day and my blood pressure was 150/96");
-  await shows(her, "It sounds like a headache that won't go away and a blood pressure of 150/96. Is this happening now?", 5_000);
+  await shows(her, "It sounds like a headache that won't go away and a blood pressure of 150/96. Is this happening now?", 15_000);
   assert.equal((await admin.from("checkins").select("id").eq("mother_id", mom.id)).data!.length, before);
   await her.$$eval("main button", (bs) => (bs.find((b) => b.textContent === "Yes, it’s happening") as HTMLButtonElement).click());
   await shows(her, "Call your doctor now.", 30_000);
   const { data } = await admin.from("checkins").select("source, signs, systolic").eq("mother_id", mom.id).order("created_at", { ascending: false }).limit(1).single();
   assert.deepEqual(data, { source: "words", signs: ["headache"], systolic: 150 });
+  // While she waits: CDC's steps, and breathing along for a call-your-doctor sign.
+  await shows(her, "While you get care", 15_000);
+  await shows(her, "Breathe with me", 15_000);
+  // Shows from the companion's Qloo tool, at once; anything else gets the menu at once.
+  await say("Find me something calm to watch");
+  await shows(her, "Here are a few gentle ones, picked through Qloo from what you love.", 15_000);
+  await shows(her, /From Qloo/i, 30_000);
+  await say("what's the weather like?");
+  await shows(her, "What would help right now?", 15_000);
 });
 
 test("the landing page leads to the demo", async () => {

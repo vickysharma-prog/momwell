@@ -3,8 +3,10 @@ import type { Contact } from "@/lib/people/contacts";
 import { BABY_ACTION } from "@/lib/safety/baby";
 import { ACTION, NOTE_UNREAD, type Result } from "@/lib/safety/engine";
 import { CRISIS_LINES } from "@/lib/safety/sources";
+import { canBreathe, nextSteps, NEXT_STEPS_SOURCE } from "@/lib/safety/next-steps";
 import { needs911, TIER_SOURCE } from "@/lib/safety/tier";
 import { babyLineFor, lineFor } from "@/lib/voice/lines";
+import { Breathe } from "./Breathe";
 import { Speak } from "./Speak";
 
 // What she sees after a check-in. A warning sign gets a calm, distinct screen with one clear thing to do: 911 only
@@ -99,6 +101,21 @@ export function ResultView({
           ))}
         </ul>
       )}
+      {alarm && !baby && (
+        <div className="flex flex-col gap-3 rounded-2xl bg-paper-raised p-4">
+          <p className="font-semibold">While you get care</p>
+          <ol className="flex list-decimal flex-col gap-2 pl-5">
+            {nextSteps({ companion: others.find((c) => c.label === "partner")?.name }).map((s) => (
+              <li key={s.text}>{s.text}</li>
+            ))}
+          </ol>
+          <a className="muted text-sm underline" href={NEXT_STEPS_SOURCE.url} target="_blank" rel="noreferrer">
+            {NEXT_STEPS_SOURCE.title}
+          </a>
+        </div>
+      )}
+      {alarm && !emergency && !baby && canBreathe(result.reasons) && <Breathe />}
+      {result.level === "none" && <p className="text-lg">You know your body best. If something feels wrong, even if it isn’t on the list, call your doctor.</p>}
       {alarm && !baby && (
         <a className="muted text-sm underline" href={TIER_SOURCE.url} target="_blank" rel="noreferrer">
           When to call 911 and when to call your doctor: {TIER_SOURCE.title}

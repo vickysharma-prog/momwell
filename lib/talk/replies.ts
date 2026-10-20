@@ -1,7 +1,7 @@
 // What Momwell says at once, for how she feels. Fixed words, chosen by the router's rules; never a diagnosis, never a
 // medicine, and always a next step she can tap.
 import type { LineId } from "../voice/lines.ts";
-import type { Feeling } from "./router.ts";
+import type { Feeling, Want } from "./router.ts";
 
 export type Chip = { label: string; href?: string; send?: string; tone?: "alarm" };
 // line: its recording in Momwell's voice, once there is one.
@@ -46,3 +46,23 @@ export function askAbout(labels: string[]) {
   const list = labels.length === 1 ? labels[0] : `${labels.slice(0, -1).join(", ")} and ${labels.at(-1)}`;
   return `It sounds like ${list}. Is this happening now?`;
 }
+
+/** Anything the rules don't recognise: what Momwell can do, one tap each. */
+export const MENU: Reply = {
+  text: "I’m here for how you feel and the little things that make the day lighter. What would help right now?",
+  chips: [
+    { label: "Check my warning signs", href: "/check-in" },
+    { label: "My mood check", href: "/mood" },
+    { label: "A calm show", send: "Find me something calm to watch" },
+    { label: "Food near me", send: "Where can I eat near me?" },
+    { label: "Calm music", send: "Music for my hospital bag" },
+    { label: "Ask my people", href: "/help" },
+  ],
+};
+
+/** What Momwell says as it brings her Qloo picks. */
+export const PICKS_SAY: Record<Want, string> = {
+  shows: "Here are a few gentle ones, picked through Qloo from what you love.",
+  food: "Here are places near you that fit your diet, picked through Qloo, with what to ask for while you’re pregnant.",
+  music: "Here are calm artists for your birth playlist, picked through Qloo from the music you love.",
+};
