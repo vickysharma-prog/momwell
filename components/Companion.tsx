@@ -10,7 +10,9 @@ import { SIGN_PHRASE, type SignId } from "@/lib/safety/signs";
 import { confirmTalk } from "@/lib/talk/actions";
 import { askAbout, NOT_NOW, REPLIES, type Chip } from "@/lib/talk/replies";
 import { route } from "@/lib/talk/router";
+import type { LineId } from "@/lib/voice/lines";
 import { ResultView } from "./ResultView";
+import { Speak } from "./Speak";
 
 type Pick = { name: string; image: string | null; address?: string | null; askFor?: string[] };
 type SignsOut = { level: "urgent" | "call_doctor" | "check" | "none"; reasons: Reason[]; crisis: boolean; noteUnread: boolean };
@@ -73,7 +75,7 @@ function ToolResult({ part, contacts }: { part: Part; contacts: Contact[] }) {
 
 type Turn =
   | { id: number; kind: "me"; text: string }
-  | { id: number; kind: "say"; text: string; chips: Chip[] }
+  | { id: number; kind: "say"; text: string; chips: Chip[]; line?: LineId }
   | { id: number; kind: "ask"; signs: SignId[]; reading: Reading; text: string; state: "open" | "saving" | "done" }
   | { id: number; kind: "crisis"; signs: SignId[] }
   | { id: number; kind: "result"; result: SignsOut }
@@ -192,6 +194,7 @@ export function Companion({ name, contacts = [] }: { name: string; contacts?: Co
               {t.kind === "say" && (
                 <>
                   <p className={`${bubble} border border-line bg-paper-raised`}>{t.text}</p>
+                  {t.line && <Speak line={t.line} />}
                   {t.chips.length > 0 && (
                     <div className="flex flex-wrap gap-2">
                       {t.chips.map((c) =>

@@ -7,15 +7,17 @@ import { heard, markHeard, onSoundChange, setSound, soundOn } from "@/lib/voice/
 // Says a fixed line aloud when it appears, with a button to hear it again. The words are on screen too, so nothing
 // depends on sound; a browser that blocks autoplay just waits for the button. With `once`, it plays by itself only the
 // first time this browser sees that line (the screen guides), so it never nags.
-export function Speak({ line, once = false }: { line: LineId; once?: boolean }) {
+export function Speak({ line, once = false }: { line: LineId; once?: boolean | string }) {
   const audio = useRef<HTMLAudioElement>(null);
   const on = useSyncExternalStore(onSoundChange, soundOn, () => true);
   const [playing, setPlaying] = useState(false);
 
   useEffect(() => {
-    if (!soundOn() || (once && heard(line))) return;
+    // `once` as a string is the key it plays once for (a greeting plays once a day); true means once ever.
+    const key = typeof once === "string" ? once : line;
+    if (!soundOn() || (once && heard(key))) return;
     // A moment after the screen settles, so the voice doesn't talk over the page arriving.
-    const t = setTimeout(() => audio.current?.play().then(() => once && markHeard(line), () => {}), once ? 500 : 150);
+    const t = setTimeout(() => audio.current?.play().then(() => once && markHeard(key), () => {}), once ? 500 : 150);
     return () => clearTimeout(t);
   }, [line, once]);
 

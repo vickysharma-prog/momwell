@@ -38,7 +38,7 @@ const shows = (page: Page, text: string) => page.waitForFunction((t) => document
 
 test("she checks on her baby; the baby rules decide; her partner is told about the baby", async () => {
   const her = await signIn(mom);
-  await shows(her, "Check on your baby");
+  await shows(her, "3 weeks old · check on your baby’s warning signs");
   await her.goto(`${base}/baby`, { timeout: 60_000 });
   await shows(her, "3 weeks old");
   assert.ok(await her.$("input[value=baby_newborn_sick]"), "the newborn sign shows in the first month");

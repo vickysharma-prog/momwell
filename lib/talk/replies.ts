@@ -1,19 +1,23 @@
 // What Momwell says at once, for how she feels. Fixed words, chosen by the router's rules; never a diagnosis, never a
 // medicine, and always a next step she can tap.
+import type { LineId } from "../voice/lines.ts";
 import type { Feeling } from "./router.ts";
 
 export type Chip = { label: string; href?: string; send?: string; tone?: "alarm" };
-export type Reply = { text: string; chips: Chip[] };
+// line: its recording in Momwell's voice, once there is one.
+export type Reply = { text: string; chips: Chip[]; line?: LineId };
 
 export const MATERNAL_HOTLINE = "tel:18338526262";
 
 export const REPLIES: Record<Feeling, Reply> = {
   low: {
     text: "I’m sorry it feels heavy right now. You’re not alone in this. Would you like to do your mood check, or ask your people for help today?",
+    line: "talk_low",
     chips: [{ label: "Do my mood check", href: "/mood" }, { label: "Ask my people for help", href: "/help" }, { label: "Talk to someone now", href: MATERNAL_HOTLINE }],
   },
   sleep: {
     text: "Nights can be so hard right now. Try to rest your body, even if sleep won’t come. I can find you something calm to watch or listen to.",
+    line: "talk_sleep",
     chips: [{ label: "A calm show", send: "Find me something calm to watch" }, { label: "Calm music", send: "Find me calm music to listen to" }],
   },
   good: {

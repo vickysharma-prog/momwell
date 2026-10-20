@@ -27,6 +27,16 @@ export const LINES = {
   guide_help_circle: "Here's what she asked for. Take one, and she'll see it's yours.",
   guide_foryou: "These are picked from what you love, through Qloo. Gentle shows, places that fit your diet, and calm music.",
   guide_talk: "Tell me how you're feeling, in your own words. I'll listen for anything that needs care.",
+  // Momwell says hello when the app opens: by name for the demo family, without one for everyone else.
+  greet_morning_maya: "Good morning, Maya. I'm Momwell. How are you feeling today?",
+  greet_afternoon_maya: "Good afternoon, Maya. I'm Momwell. How are you feeling today?",
+  greet_evening_maya: "Good evening, Maya. I'm Momwell. How are you feeling today?",
+  greet_morning: "Good morning. I'm Momwell. How are you feeling today?",
+  greet_afternoon: "Good afternoon. I'm Momwell. How are you feeling today?",
+  greet_evening: "Good evening. I'm Momwell. How are you feeling today?",
+  // Talk's instant answers (lib/talk/replies.ts), chosen by rules. The rest are recorded as quota allows.
+  talk_low: "I'm sorry it feels heavy right now. You're not alone in this. Would you like to do your mood check, or ask your people for help today?",
+  talk_sleep: "Nights can be so hard right now. Try to rest your body, even if sleep won't come. I can find you something calm to watch or listen to.",
 } as const;
 export type LineId = keyof typeof LINES;
 

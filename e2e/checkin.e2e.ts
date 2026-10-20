@@ -65,7 +65,7 @@ test("a headache and high blood pressure bring up the red screen", async () => {
   const shown = await text(m);
   // A headache is a call-your-doctor sign, not a 911 one (AWHONN); 911 stays one tap away.
   assert.match(shown, /Call your doctor now\./);
-  assert.match(shown, /I am pregnant or gave birth in the last year, and I am having headache/);
+  assert.match(shown, /I am pregnant or gave birth in the last year, and I am having a headache that won't go away and a blood pressure of 150\/95\./);
   assert.match(shown, /headache that won't go away/i);
   assert.match(shown, /150\/95/);
   assert.ok(await m.$("a[href='tel:911']"));

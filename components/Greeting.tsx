@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useSyncExternalStore } from "react";
-import { greetingFor } from "@/lib/voice/greeting";
+import { Speak } from "@/components/Speak";
+import { greetingFor, greetingLine } from "@/lib/voice/greeting";
 
 const noop = () => () => {};
 
@@ -17,6 +18,8 @@ export function Greeting({ name }: { name: string }) {
           m
         </span>
         <p className="flex-1 font-display text-2xl leading-snug">{greetingFor(name, hour)}</p>
+        {/* Said aloud once a day, in Momwell's recorded voice; known only once the browser knows her hour. */}
+        {hour !== null && <Speak line={greetingLine(name, hour)} once={`${greetingLine(name, hour)}-${new Date().toDateString()}`} />}
       </div>
       <div className="flex flex-wrap gap-2 sm:pl-15">
         <Link href="/check-in" className="btn-quiet min-h-11 bg-paper-raised">
