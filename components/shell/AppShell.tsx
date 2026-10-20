@@ -7,6 +7,7 @@ import { Logo } from "@/components/Logo";
 import { signOut } from "@/lib/auth/actions";
 import type { Role } from "@/lib/people/signup";
 import { activeHref, navFor, type Icon } from "./nav";
+import { TimeZone } from "./TimeZone";
 import { SoundToggle, UiSounds } from "./UiSounds";
 
 const ROLE_LABEL: Record<Role, string> = { mother: "Mom", circle: "Her circle", care_team: "Care team" };
@@ -107,6 +108,7 @@ export function AppShell({ role, name, banner, children }: { role: Role; name: s
 
       <div className="min-w-0 pb-28 md:pb-0">
         <UiSounds />
+        <TimeZone />
         {banner}
         {children}
       </div>

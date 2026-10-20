@@ -2,16 +2,18 @@
 
 import { revalidatePath } from "next/cache";
 import { requireMe } from "@/lib/people/me";
+import { dateIn } from "@/lib/time";
+import { myTz } from "@/lib/tz";
 import { readAsk } from "./asks";
 
-const today = () => new Date().toISOString().slice(0, 10);
+const today = async () => dateIn(await myTz());
 
 export type AskState = { error?: string; ok?: boolean } | undefined;
 
 export async function createAsk(_: AskState, form: FormData): Promise<AskState> {
   const { db, me } = await requireMe();
   if (me.role !== "mother") return { error: "Asks are for moms." };
-  const a = readAsk(form, today());
+  const a = readAsk(form, await today());
   if (!a.ok) return { error: a.error };
   const { error } = await db.from("asks").insert({ mother_id: me.id, ...a.value });
   if (error) return { error: "We couldn’t send that. Please try again." };

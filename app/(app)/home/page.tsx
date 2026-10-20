@@ -9,6 +9,8 @@ import { CareHome } from "@/components/care/CareHome";
 import type { Scope } from "@/lib/people/access";
 import { ASK_KINDS, askLine, type AskKind } from "@/lib/help/asks";
 import { requireMe } from "@/lib/people/me";
+import { dateIn, formatIn } from "@/lib/time";
+import { myTz } from "@/lib/tz";
 import { moodDue } from "@/lib/safety/mood";
 import { babyAge, stageFrom, weeksPregnant } from "@/lib/safety/stage";
 
@@ -23,12 +25,15 @@ const LEVEL: Record<CheckIn["level"], { label: string; dot: string }> = {
   none: { label: "All clear", dot: "bg-brand" },
 };
 
-const day = (iso: string) => new Date(iso).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+const dayOf = (tz: string) => (iso: string) => formatIn(tz, iso, { weekday: "short", month: "short", day: "numeric" });
 
 // Today: for her, the check-in first, then her alerts and people; for her circle, the alerts first; for her care
 // team, the triage queue.
 export default async function Today() {
   const { db, me } = await requireMe();
+  const tz = await myTz();
+  const day = dayOf(tz);
+  const todayDate = dateIn(tz);
   if (me.role === "care_team") return <CareHome db={db} me={me} />;
   const mine = me.role === "mother";
   const [{ data: links }, { data: alerts }, { data: checkins }, { data: dates }, { data: asks }, { data: lastMood }] = await Promise.all([
@@ -40,7 +45,7 @@ export default async function Today() {
     mine ? db.from("checkins").select("id, created_at, level, subject").eq("mother_id", me.id).order("created_at", { ascending: false }).limit(6) : Promise.resolve({ data: [] }),
     mine ? db.from("mothers").select("due_date, birth_date").eq("id", me.id).maybeSingle() : Promise.resolve({ data: null }),
     // What she asked her circle for, from today on (row-level security: hers, or moms who share ways to help).
-    db.from("asks").select("id, mother_id, kind, needed_on, taken_by, mom:profiles!asks_mother_id_fkey(name), taker:profiles!asks_taken_by_fkey(name)").eq("done", false).gte("needed_on", new Date().toISOString().slice(0, 10)).order("needed_on").limit(6),
+    db.from("asks").select("id, mother_id, kind, needed_on, taken_by, mom:profiles!asks_mother_id_fkey(name), taker:profiles!asks_taken_by_fkey(name)").eq("done", false).gte("needed_on", todayDate).order("needed_on").limit(6),
     mine ? db.from("moods").select("created_at").eq("mother_id", me.id).order("created_at", { ascending: false }).limit(1).maybeSingle() : Promise.resolve({ data: null }),
   ]);
   const help = (asks ?? []) as unknown as HelpAsk[];
@@ -55,7 +60,7 @@ export default async function Today() {
       <ul className="flex flex-col gap-2">
         {help.map((a) => (
           <li key={a.id} className="flex flex-wrap items-baseline justify-between gap-2">
-            <span>{mine ? askLine(a.kind, a.needed_on, new Date().toISOString().slice(0, 10)) : `${a.mom?.name}: ${askLine(a.kind, a.needed_on, new Date().toISOString().slice(0, 10)).toLowerCase()}`}</span>
+            <span>{mine ? askLine(a.kind, a.needed_on, todayDate) : `${a.mom?.name}: ${askLine(a.kind, a.needed_on, todayDate).toLowerCase()}`}</span>
             <span className={`text-sm font-medium ${a.taken_by ? "text-brand" : "text-ink-soft"}`}>{a.taken_by ? (a.taken_by === me.id ? "You’re on it" : `${a.taker?.name} is on it`) : "Waiting"}</span>
           </li>
         ))}
@@ -67,7 +72,7 @@ export default async function Today() {
   const today = new Date();
   const stage = stageFrom(dates ?? {}, today);
   const lastMine = recent.find((c) => c.subject === "mother");
-  const doneToday = lastMine && new Date(lastMine.created_at).toDateString() === today.toDateString();
+  const doneToday = lastMine && dateIn(tz, lastMine.created_at) === todayDate;
 
   return (
     <AppPage>
@@ -134,7 +139,7 @@ export default async function Today() {
           </div>
 
           <div className="flex flex-col gap-6">
-            {(alerts ?? []).length > 0 && <AlertList alerts={alerts as unknown as Alert[]} role={me.role} />}
+            {(alerts ?? []).length > 0 && <AlertList alerts={alerts as unknown as Alert[]} role={me.role} tz={tz} />}
             {helpCard}
             <section className="card flex flex-col gap-4" aria-label="Your people">
               <div className="flex items-center justify-between">
@@ -178,7 +183,7 @@ export default async function Today() {
         })}
         <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
           {(alerts ?? []).length > 0 ? (
-            <AlertList alerts={alerts as unknown as Alert[]} role={me.role} />
+            <AlertList alerts={alerts as unknown as Alert[]} role={me.role} tz={tz} />
           ) : (
             <section className="rounded-[32px] bg-brand-soft p-8">
               <h2 className="text-2xl">No alerts</h2>

@@ -28,8 +28,9 @@ export function ResultView({
 }) {
   const alarm = result.level === "urgent" || result.level === "call_doctor";
   const emergency = alarm && (baby ? result.level === "urgent" : needs911(result.reasons));
-  const doctor = contacts.find((c) => c.kind === "care_team");
-  const others = contacts.filter((c) => c !== doctor);
+  // Her doctor for her, the baby's doctor for the baby; her people either way.
+  const doctor = contacts.find((c) => c.kind === (baby ? "baby_doctor" : "care_team"));
+  const others = contacts.filter((c) => c !== doctor && c.kind !== "baby_doctor" && !(baby && c.kind === "care_team"));
   const heading = baby ? BABY_ACTION[result.level] : emergency ? "Call 911 now." : alarm ? "Call your doctor now." : result.level === "check" ? "Let’s check that again" : "Thank you for checking in";
 
   return (
@@ -42,7 +43,7 @@ export function ResultView({
           Call 911
         </a>
       )}
-      {alarm && !emergency && doctor && !baby && (
+      {alarm && !emergency && doctor && (
         <a className="btn calm-glow bg-[var(--alarm)]" href={`tel:${doctor.phone}`}>
           Call {doctor.name}
         </a>

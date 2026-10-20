@@ -67,3 +67,16 @@ export async function savePhone(_: PhoneState, form: FormData): Promise<PhoneSta
   revalidatePath("/", "layout");
   return { ok: true };
 }
+
+// Her baby's doctor: a warning about the baby then calls them in one tap. Only hers to set.
+export async function saveBabyDoctor(_: PhoneState, form: FormData): Promise<PhoneState> {
+  const { db, me } = await requireMe();
+  if (me.role !== "mother") return { error: "Only she can set her baby's doctor." };
+  const name = String(form.get("name") ?? "").trim().slice(0, 60);
+  const phone = readPhone(String(form.get("phone") ?? ""));
+  if (!phone.ok) return { error: phone.error };
+  const { error } = await db.from("mothers").upsert({ id: me.id, baby_doctor_name: name || null, baby_doctor_phone: phone.value, updated_at: new Date().toISOString() });
+  if (error) return { error: "We couldn't save that. Please try again." };
+  revalidatePath("/", "layout");
+  return { ok: true };
+}

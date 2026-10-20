@@ -6,6 +6,7 @@ import { defaultSees } from "../people/access.ts";
 import { search } from "../qloo/api.ts";
 import { evaluate } from "../safety/engine.ts";
 import { scoreMood } from "../safety/mood.ts";
+import { dateIn } from "../time.ts";
 
 export const FAMILY = [
   { key: "mom", role: "mother", name: "Maya" },
@@ -34,7 +35,8 @@ const PHONES: Record<Member, string> = { mom: "5125550142", partner: "5125550117
 // Everything that doesn't depend on something else is written at the same time, so a judge waits as little as possible.
 export async function fillFamily(admin: SupabaseClient, id: Record<Member, string>) {
   const due = new Date(Date.now() + 13 * 7 * 86_400_000).toISOString().slice(0, 10);
-  const today = new Date().toISOString().slice(0, 10);
+  // Today where the family lives (Austin), not on the server's clock.
+  const today = dateIn("America/Chicago");
   const hoursAgo = (h: number) => new Date(Date.now() - h * 3_600_000).toISOString();
   const clear = evaluate({ signs: [], bp: { systolic: 118, diastolic: 76 } });
   const warn = evaluate({ signs: ["headache"], bp: { systolic: 148, diastolic: 94 } });
@@ -46,7 +48,7 @@ export async function fillFamily(admin: SupabaseClient, id: Record<Member, strin
 
   const [, , , , , , warned] = await Promise.all([
     ...(Object.keys(PHONES) as Member[]).map(async (m) => must(await admin.from("profiles").update({ phone: PHONES[m] }).eq("id", id[m]))),
-    (async () => must(await admin.from("mothers").insert({ id: id.mom, due_date: due })))(),
+    (async () => must(await admin.from("mothers").insert({ id: id.mom, due_date: due, baby_doctor_name: "Dr Patel", baby_doctor_phone: "5125550163" })))(),
     (async () =>
       must(
         await admin.from("links").insert([

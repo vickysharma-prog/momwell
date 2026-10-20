@@ -9,6 +9,8 @@ import { stageLabel } from "@/lib/care/patients";
 import { statusOf, STATUS } from "@/lib/care/triage";
 import { aboutHer, LEVEL_FOR_TEAM, toldHer } from "@/lib/care/voice";
 import { requireMe } from "@/lib/people/me";
+import { formatIn } from "@/lib/time";
+import { myTz } from "@/lib/tz";
 import type { Reason } from "@/lib/safety/engine";
 import { band, QUESTIONS, type MoodLevel } from "@/lib/safety/mood";
 import type { CheckInSource } from "@/lib/safety/trail";
@@ -18,13 +20,14 @@ type CheckIn = { id: string; source: CheckInSource; subject: "mother" | "baby"; 
 
 const DOT: Record<string, string> = { urgent: "bg-alarm", call_doctor: "bg-honey", check: "bg-line", none: "bg-brand" };
 const aboutBaby = (a: { checkin: unknown }) => (a.checkin as { subject?: string } | null)?.subject === "baby";
-const when = (iso: string) => new Date(iso).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
+const whenIn = (tz: string) => (iso: string) => formatIn(tz, iso, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" });
 
 // One patient, for her care team: status, blood pressure over time, every check-in in her words and the rules',
 // and a summary to print before a visit. Row-level security means only her care team gets here with data.
 export default async function PatientPage({ params }: PageProps<"/patients/[id]">) {
   const { id } = await params;
   const { db, me } = await requireMe();
+  const when = whenIn(await myTz());
   if (me.role !== "care_team") redirect("/home");
 
   const [{ data: profile }, { data: dates }, { data: checkins }, { data: alerts }, { data: moodRows }] = await Promise.all([
@@ -152,7 +155,7 @@ export default async function PatientPage({ params }: PageProps<"/patients/[id]"
 
       <section className="card flex flex-col gap-4">
         <h2 className="text-2xl">Blood pressure</h2>
-        <BpChart points={bp} />
+        <BpChart points={bp} tz={await myTz()} />
       </section>
 
       <section className="flex flex-col gap-3 print:break-before-page">

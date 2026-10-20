@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { markSeen } from "@/lib/checkin/actions";
 import type { Role } from "@/lib/people/signup";
+import { DEFAULT_TZ, formatIn } from "@/lib/time";
 
 export type Alert = { id: string; mother_id: string; checkin_id: string; level: "urgent" | "call_doctor"; created_at: string; seen_at: string | null; mother: { name: string }; seer: { name: string } | null; checkin: { subject: "mother" | "baby" } | null };
 
 // Alerts as each role should read them. The check-in comes back under row-level security, so it's there (and linked)
 // only for people she shares that kind of check-in with; for the rest, an alert says only that she needs them.
-export function AlertList({ alerts, role }: { alerts: Alert[]; role: Role }) {
+export function AlertList({ alerts, role, tz = DEFAULT_TZ }: { alerts: Alert[]; role: Role; tz?: string }) {
   const mine = role === "mother";
   return (
     <section className="flex flex-col gap-3" aria-label="Alerts">
@@ -29,7 +30,7 @@ export function AlertList({ alerts, role }: { alerts: Alert[]; role: Role }) {
                 : `${a.mother.name} ${a.level === "urgent" ? "needs you to check on her now" : "was told to call her doctor"}`}
           </p>
           <p className="text-sm text-ink-soft">
-            {new Date(a.created_at).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })}
+            {formatIn(tz, a.created_at, { dateStyle: "medium", timeStyle: "short" })}
             {a.seen_at ? ` · Seen by ${a.seer?.name ?? "her care team"}` : " · Not seen yet"}
           </p>
           <div className="flex flex-wrap items-center gap-3">

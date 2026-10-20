@@ -6,14 +6,14 @@ import { AskForm } from "@/components/help/AskForm";
 import { letGo, markDone, removeAsk, takeAsk } from "@/lib/help/actions";
 import { ASK_KINDS, askLine, type AskKind } from "@/lib/help/asks";
 import { requireMe } from "@/lib/people/me";
+import { dateIn, daysFrom } from "@/lib/time";
+import { myTz } from "@/lib/tz";
 import { nearbyFood } from "@/lib/qloo/food";
 import { idsOf, type Taste } from "@/lib/taste/taste";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 type Ask = { id: string; mother_id: string; kind: AskKind; note: string; needed_on: string; taken_by: string | null; done: boolean; mom: { name: string } | null; taker: { name: string } | null };
 
-const daysAgo = (n: number) => new Date(Date.now() - n * 86_400_000).toISOString().slice(0, 10);
-const today = () => daysAgo(0);
 
 // For a dinner ask: places that fit her taste and diet, from Qloo, with what to ask for while she's pregnant.
 async function MealIdeas({ db, motherId }: { db: SupabaseClient; motherId: string }) {
@@ -38,12 +38,14 @@ async function MealIdeas({ db, motherId }: { db: SupabaseClient; motherId: strin
 
 export default async function Help() {
   const { db, me } = await requireMe();
+  const tz = await myTz();
+  const today = () => dateIn(tz);
   if (me.role === "care_team") redirect("/home");
   const mine = me.role === "mother";
   const { data } = await db
     .from("asks")
     .select("id, mother_id, kind, note, needed_on, taken_by, done, mom:profiles!asks_mother_id_fkey(name), taker:profiles!asks_taken_by_fkey(name)")
-    .gte("needed_on", daysAgo(2))
+    .gte("needed_on", daysFrom(tz, -2))
     .order("needed_on")
     .order("created_at");
   const asks = (data ?? []) as unknown as Ask[];

@@ -1,3 +1,4 @@
+import { DEFAULT_TZ, formatIn } from "@/lib/time";
 // Her blood pressure over time, with the two lines that matter: 140/90 (call her doctor) and 160/110 (care now).
 // Plain SVG, drawn on the server.
 type Point = { at: string; systolic: number; diastolic: number };
@@ -8,7 +9,7 @@ const PAD = { l: 44, r: 16, t: 16, b: 32 };
 const MIN = 50;
 const MAX = 190;
 
-export function BpChart({ points }: { points: Point[] }) {
+export function BpChart({ points, tz = DEFAULT_TZ }: { points: Point[]; tz?: string }) {
   if (points.length === 0) return <p className="rounded-2xl border border-dashed border-line p-6 text-ink-soft">No blood pressure readings yet.</p>;
   const sorted = [...points].sort((a, b) => Date.parse(a.at) - Date.parse(b.at));
   const t0 = Date.parse(sorted[0].at);
@@ -16,7 +17,7 @@ export function BpChart({ points }: { points: Point[] }) {
   const x = (at: string) => PAD.l + ((Date.parse(at) - t0) / (t1 - t0)) * (W - PAD.l - PAD.r);
   const y = (v: number) => PAD.t + (1 - (Math.min(MAX, Math.max(MIN, v)) - MIN) / (MAX - MIN)) * (H - PAD.t - PAD.b);
   const line = (k: "systolic" | "diastolic") => sorted.map((p, i) => `${i ? "L" : "M"}${x(p.at).toFixed(1)} ${y(p[k]).toFixed(1)}`).join(" ");
-  const day = (at: string) => new Date(at).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  const day = (at: string) => formatIn(tz, at, { month: "short", day: "numeric" });
 
   return (
     <figure className="flex flex-col gap-3">

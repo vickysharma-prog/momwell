@@ -1,6 +1,7 @@
 import { headers } from "next/headers";
 import { AppPage } from "@/components/AppPage";
 import { CopyLink } from "@/components/CopyLink";
+import { BabyDoctorForm } from "@/components/people/BabyDoctorForm";
 import { PhoneForm } from "@/components/people/PhoneForm";
 import { formatPhone } from "@/lib/people/phone";
 import { SCOPE_LABEL, SHOWN_SCOPES, shownOnly, type Scope } from "@/lib/people/access";
@@ -13,12 +14,13 @@ type Linked = { mother_id: string; person_id: string; kind: string; relation: st
 export default async function People() {
   const { db, me } = await requireMe();
   const mine = me.role === "mother";
-  const [{ data: links }, { data: invites }, { data: own }] = await Promise.all([
+  const [{ data: links }, { data: invites }, { data: own }, { data: mom }] = await Promise.all([
     mine
       ? db.from("links").select("*, other:profiles!links_person_id_fkey(name)").eq("mother_id", me.id).order("created_at")
       : db.from("links").select("*, other:profiles!links_mother_id_fkey(name)").eq("person_id", me.id).order("created_at"),
     db.from("invites").select("token, kind, relation, partner").is("accepted_by", null).gt("expires_at", new Date().toISOString()).order("created_at"),
     db.from("profiles").select("phone").eq("id", me.id).single(),
+    mine ? db.from("mothers").select("baby_doctor_name, baby_doctor_phone").eq("id", me.id).maybeSingle() : Promise.resolve({ data: null }),
   ]);
   const h = await headers();
   const origin = `${h.get("x-forwarded-proto") ?? "http"}://${h.get("host")}`;
@@ -68,6 +70,7 @@ export default async function People() {
 
         <div className="flex flex-col gap-6 lg:sticky lg:top-8">
         <PhoneForm phone={own?.phone ? formatPhone(own.phone) : null} mother={mine} />
+        {mine && <BabyDoctorForm name={mom?.baby_doctor_name ?? null} phone={mom?.baby_doctor_phone ? formatPhone(mom.baby_doctor_phone) : null} />}
         {me.role !== "circle" && (
           <section className="card flex flex-col gap-4">
             <h2 className="text-2xl">{mine ? "Invite someone" : "Invite a patient"}</h2>
