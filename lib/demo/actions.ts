@@ -6,7 +6,8 @@ import { redirect } from "next/navigation";
 import { requireMe } from "@/lib/people/me";
 import { supabaseAdmin } from "@/lib/supabase/admin";
 import { supabaseServer } from "@/lib/supabase/server";
-import { createDemoFamily, demoMother, hashIp, signInToken, underLimit } from "./create";
+import { after } from "next/server";
+import { claimDemoFamily, createDemoFamily, demoMother, fillPool, hashIp, signInToken, underLimit } from "./create";
 import type { Member } from "./family";
 
 export type DemoState = { error?: string } | undefined;
@@ -23,8 +24,10 @@ export async function startDemo(): Promise<DemoState> {
   const ipHash = hashIp(ip);
   if (!(await underLimit(ipHash))) return { error: "You’ve opened several demos this hour. Please use the one you have, or try again later." };
   try {
-    const { family } = await createDemoFamily(ipHash);
+    // A family from the pool opens at once; only if the pool is empty is one made now.
+    const family = (await claimDemoFamily(ipHash)) ?? (await createDemoFamily(ipHash)).family;
     await signInAs(family, "mom");
+    after(() => fillPool().catch(() => {}));
   } catch {
     return { error: "We couldn’t set up the demo just now. Please try again." };
   }
