@@ -1,7 +1,7 @@
 // What to say when she calls: AWHONN's line, "I gave birth on (date) and I am having (warning signs)", with her
 // stage and what she reported filled in, so she doesn't have to find the words while she's frightened.
 import type { Reason } from "./engine.ts";
-import { SIGNS } from "./signs.ts";
+import { SIGN_PHRASE, type SignId } from "./signs.ts";
 import type { Stage } from "./signs.ts";
 
 const when = (iso: string) => new Date(`${iso}T12:00:00Z`).toLocaleDateString("en-US", { month: "long", day: "numeric", timeZone: "UTC" });
@@ -12,8 +12,7 @@ function item(r: Reason) {
   if (r.id.startsWith("bp_") && bp) return `a blood pressure of ${bp[1]}`;
   const t = /(\d+(?:\.\d+)?°[FC])/.exec(r.text);
   if (r.id === "fever" && t) return `a temperature of ${t[1]}`;
-  const sign = SIGNS.find((s) => s.id === r.id);
-  return sign ? sign.label.charAt(0).toLowerCase() + sign.label.slice(1) : null;
+  return SIGN_PHRASE[r.id as SignId] ?? null;
 }
 
 export function tellThem(stage: Stage, dates: { birth_date?: string | null }, weeks: number | null, reasons: Reason[]) {

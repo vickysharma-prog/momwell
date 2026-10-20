@@ -5,7 +5,7 @@ import { tellThem } from "./script.ts";
 
 test("pregnant: her weeks and each warning, with her numbers", () => {
   const r = evaluate({ signs: ["headache"], bp: { systolic: 152, diastolic: 97 } });
-  assert.equal(tellThem({ kind: "pregnant" }, {}, 27, r.reasons), "I am 27 weeks pregnant, and I am having headache that won't go away or gets worse over time and a blood pressure of 152/97.");
+  assert.equal(tellThem({ kind: "pregnant" }, {}, 27, r.reasons), "I am 27 weeks pregnant, and I am having a headache that won't go away and a blood pressure of 152/97.");
 });
 
 test("after birth: AWHONN's 'I gave birth on' with her date", () => {
@@ -15,7 +15,7 @@ test("after birth: AWHONN's 'I gave birth on' with her date", () => {
 
 test("stage unknown still says pregnant or in the last year", () => {
   const r = evaluate({ signs: ["breathing", "chest_heart"] });
-  assert.match(tellThem({ kind: "unknown" }, {}, null, r.reasons)!, /^I am pregnant or gave birth in the last year, and I am having trouble breathing and chest pain/);
+  assert.match(tellThem({ kind: "unknown" }, {}, null, r.reasons)!, /^I am pregnant or gave birth in the last year, and I am having trouble breathing and chest pain or a fast-beating heart\.$/);
 });
 
 test("nothing to say when nothing is a warning", () => {

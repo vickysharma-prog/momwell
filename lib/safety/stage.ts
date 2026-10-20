@@ -18,3 +18,6 @@ export function stageFrom(dates: { due_date?: string | null; birth_date?: string
 export function weeksPregnant(due: string, today: Date) {
   return Math.max(0, Math.floor(40 + days(due, today) / 7));
 }
+
+/** "10 days old", "6 weeks old", "4 months old": her baby's age from days since birth. */
+export const babyAge = (days: number) => (days < 14 ? `${days} days old` : days < 90 ? `${Math.floor(days / 7)} weeks old` : `${Math.floor(days / 30.4)} months old`);

@@ -5,17 +5,18 @@ import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { useEveAgent } from "eve/react";
 import type { Contact } from "@/lib/people/contacts";
-import type { Reason } from "@/lib/safety/engine";
-import { SIGNS } from "@/lib/safety/signs";
-import { signsInWords } from "@/lib/safety/words";
-import { hush, say } from "@/lib/voice/say";
+import type { Reading, Reason } from "@/lib/safety/engine";
+import { SIGN_PHRASE, type SignId } from "@/lib/safety/signs";
+import { confirmTalk } from "@/lib/talk/actions";
+import { askAbout, NOT_NOW, REPLIES, type Chip } from "@/lib/talk/replies";
+import { route } from "@/lib/talk/router";
 import { ResultView } from "./ResultView";
 
 type Pick = { name: string; image: string | null; address?: string | null; askFor?: string[] };
 type SignsOut = { level: "urgent" | "call_doctor" | "check" | "none"; reasons: Reason[]; crisis: boolean; noteUnread: boolean };
 type Part = { type: string; text?: string; id?: string; toolName?: string; state?: string; output?: unknown; toolCallId?: string };
 
-const SUGGESTIONS = ["Find me a calm show for tonight", "Where can I eat near me?", "Music for my hospital bag", "I have a headache that won't go away"];
+const SUGGESTIONS = ["I have a headache that won't go away", "I feel anxious and alone", "Find me a calm show for tonight", "Where can I eat near me?"];
 
 // The browser's speech-to-text where it exists (Chrome, Safari); typing always works.
 type Recognition = { lang: string; interimResults: boolean; start(): void; stop(): void; onresult: ((e: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void) | null; onend: (() => void) | null };
@@ -70,32 +71,69 @@ function ToolResult({ part, contacts }: { part: Part; contacts: Contact[] }) {
   return null;
 }
 
-// Talk to Momwell: type or speak. Her words are also scanned in the browser for warning signs, so the list is one
-// tap away even before the model answers.
+type Turn =
+  | { id: number; kind: "me"; text: string }
+  | { id: number; kind: "say"; text: string; chips: Chip[] }
+  | { id: number; kind: "ask"; signs: SignId[]; reading: Reading; text: string; state: "open" | "saving" | "done" }
+  | { id: number; kind: "crisis"; signs: SignId[] }
+  | { id: number; kind: "result"; result: SignsOut }
+  | { id: number; kind: "agent"; from: number };
+// A turn before it has an id, kept per kind.
+type NewTurn = { [K in Turn["kind"]]: Omit<Extract<Turn, { kind: K }>, "id"> }[Turn["kind"]];
+
+// "It sounds like a headache that won't go away": her words back to her, so "my" becomes "your".
+const label = (id: SignId) => SIGN_PHRASE[id].replace(/\bmy\b/g, "your").replace(/\bmyself\b/g, "yourself");
+const readingWords = (r: Reading) => [r.bp && `a blood pressure of ${r.bp.systolic}/${r.bp.diastolic}`, r.temp && `a temperature of ${r.temp.value}°${r.temp.unit}`].filter(Boolean) as string[];
+
+// Talk to Momwell: type or speak. Plain rules answer first, at once: a warning sign is asked about and, once she says
+// yes, decided by the rules engine; thoughts of harm bring the crisis lines straight away; how she feels gets a kind
+// answer with a next step. Only the rest (shows, food and music through Qloo, anything else) waits for the model.
 export function Companion({ name, contacts = [] }: { name: string; contacts?: Contact[] }) {
   const agent = useEveAgent();
   const [text, setText] = useState("");
-  const [flagged, setFlagged] = useState<string[]>([]);
+  const [turns, setTurns] = useState<Turn[]>([]);
   const [listening, setListening] = useState(false);
+  const [slow, setSlow] = useState(false);
   const rec = useRef<Recognition | null>(null);
   const end = useRef<HTMLDivElement>(null);
+  const nextId = useRef(0);
   const busy = agent.status === "submitted" || agent.status === "streaming";
   // False on the server and in the first render, then what the browser supports: no hydration mismatch.
   const canSpeak = useSyncExternalStore(noop, () => Boolean(speechApi()), () => false);
+  const messages = agent.data.messages as unknown as { id: string; role: string; parts: Part[] }[];
 
   // Braces matter: newer browsers return a promise from scrollIntoView, and an effect may only return a cleanup.
   useEffect(() => {
     end.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-  }, [agent.data.messages.length, agent.status]);
+  }, [turns.length, messages.length, agent.status]);
+
+  const add = (...t: NewTurn[]) => setTurns((all) => [...all, ...t.map((x) => ({ ...x, id: nextId.current++ }) as Turn)]);
+  const settle = (id: number, state: "saving" | "done") => setTurns((all) => all.map((t) => (t.id === id && t.kind === "ask" ? { ...t, state } : t)));
 
   function send(message: string) {
     const m = message.trim();
     if (!m || agent.status === "resuming") return;
-    const hits = signsInWords(m);
-    if (hits.length) setFlagged(hits.map((id) => SIGNS.find((s) => s.id === id)!.label));
-    setSlow(false);
-    void agent.send(m, busy ? { turnPolicy: "steer" } : undefined);
     setText("");
+    setSlow(false);
+    const r = route(m);
+    const me = { kind: "me" as const, text: m };
+    if (r.kind === "crisis") return add(me, { kind: "crisis", signs: r.signs });
+    if (r.kind === "confirm") return add(me, { kind: "ask", signs: r.signs, reading: r.reading, text: askAbout([...r.signs.map(label), ...readingWords(r.reading)]), state: "open" });
+    if (r.kind === "feeling") return add(me, { kind: "say", ...REPLIES[r.feeling] });
+    add(me, { kind: "agent", from: messages.length });
+    void agent.send(m, busy ? { turnPolicy: "steer" } : undefined);
+  }
+
+  async function answer(turn: Extract<Turn, { kind: "ask" }>, yes: boolean) {
+    if (!yes) {
+      settle(turn.id, "done");
+      return add({ kind: "say", ...NOT_NOW });
+    }
+    settle(turn.id, "saving");
+    const saved = await confirmTalk(turn.signs, turn.reading);
+    settle(turn.id, "done");
+    if ("error" in saved) return add({ kind: "say", text: saved.error, chips: [{ label: "Check in", href: "/check-in" }] });
+    add({ kind: "result", result: saved.result });
   }
 
   function listen() {
@@ -112,41 +150,29 @@ export function Companion({ name, contacts = [] }: { name: string; contacts?: Co
     r.start();
   }
 
-  const messages = agent.data.messages as unknown as { id: string; role: string; parts: Part[] }[];
-  const last = messages.at(-1);
-  // Thinking until the answer shows something: a streaming turn with nothing in it yet still looks alive.
-  const answered = last?.role === "assistant" && last.parts.some((p) => (p.type === "text" && p.text?.trim()) || p.type === "dynamic-tool");
+  // The companion's messages that answer one handoff: from where it started up to the next handoff.
+  const handoffs = turns.filter((t): t is Extract<Turn, { kind: "agent" }> => t.kind === "agent");
+  const answerTo = (t: Extract<Turn, { kind: "agent" }>) => {
+    const next = handoffs[handoffs.indexOf(t) + 1];
+    return messages.slice(t.from, next?.from ?? messages.length).filter((m) => m.role === "assistant");
+  };
+  const lastHandoff = handoffs.at(-1);
+  const answered = lastHandoff ? answerTo(lastHandoff).some((m) => m.parts.some((p) => (p.type === "text" && p.text?.trim()) || p.type === "dynamic-tool")) : true;
   const thinking = busy && !answered;
 
   // After 25 seconds of thinking, a quiet note, so she's never left wondering.
-  const [slow, setSlow] = useState(false);
   useEffect(() => {
     if (!thinking) return;
     const t = setTimeout(() => setSlow(true), 25_000);
     return () => clearTimeout(t);
   }, [thinking]);
 
-  // Momwell's replies are spoken as they finish, never the history a page reloads with. A warning-sign result speaks
-  // its own recorded line instead.
-  const spoken = useRef<string | null>(null);
-  useEffect(() => {
-    if (spoken.current === null || agent.status === "resuming") {
-      spoken.current = last?.id ?? "";
-      if (!last) say(`Hi ${name}. How are you feeling today?`);
-      return;
-    }
-    if (busy || !last || last.role !== "assistant" || last.id === spoken.current) return;
-    spoken.current = last.id;
-    if (last.parts.some((p) => p.type === "dynamic-tool" && p.toolName === "report_signs")) return;
-    const reply = last.parts.filter((p) => p.type === "text").map((p) => p.text ?? "").join(" ").trim();
-    if (reply) say(reply);
-  }, [busy, last, agent.status, name]);
-  useEffect(() => hush, []);
+  const bubble = "max-w-[85%] rounded-3xl px-5 py-3 text-lg leading-relaxed whitespace-pre-wrap";
 
   return (
     <div className="flex min-h-[calc(100dvh-14rem)] flex-col gap-4">
       <div className="flex flex-1 flex-col gap-5" aria-live="polite">
-        {messages.length === 0 && (
+        {turns.length === 0 && (
           <div className="flex flex-col gap-5 rounded-[32px] bg-brand-soft p-7">
             <p className="font-display text-3xl leading-tight">Hi {name}. How are you feeling today?</p>
             <p className="text-ink-soft">Tell me in your own words, out loud or typed. I can also find you a gentle show, food near you, or music for the hospital bag.</p>
@@ -160,19 +186,68 @@ export function Companion({ name, contacts = [] }: { name: string; contacts?: Co
           </div>
         )}
         <AnimatePresence initial={false}>
-          {messages.map((m) => (
-            <motion.div key={m.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className={`flex flex-col gap-3 ${m.role === "user" ? "items-end" : "items-start"}`}>
-              {m.parts.map((part, i) =>
-                part.type === "text" && part.text?.trim() ? (
-                  <p key={part.id ?? i} className={`max-w-[85%] rounded-3xl px-5 py-3 text-lg leading-relaxed whitespace-pre-wrap ${m.role === "user" ? "bg-brand text-on-brand" : "border border-line bg-paper-raised"}`}>
-                    {part.text}
-                  </p>
-                ) : part.type === "dynamic-tool" ? (
-                  <div key={part.toolCallId ?? i} className="w-full">
-                    <ToolResult part={part} contacts={contacts} />
-                  </div>
-                ) : null,
+          {turns.map((t) => (
+            <motion.div key={t.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className={`flex flex-col gap-3 ${t.kind === "me" ? "items-end" : "items-start"}`}>
+              {t.kind === "me" && <p className={`${bubble} bg-brand text-on-brand`}>{t.text}</p>}
+              {t.kind === "say" && (
+                <>
+                  <p className={`${bubble} border border-line bg-paper-raised`}>{t.text}</p>
+                  {t.chips.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {t.chips.map((c) =>
+                        c.href ? (
+                          <Link key={c.label} href={c.href} className={`btn-quiet min-h-11 bg-paper-raised text-sm ${c.tone === "alarm" ? "border-[var(--alarm)] text-[var(--alarm)]" : ""}`}>
+                            {c.label}
+                          </Link>
+                        ) : (
+                          <button key={c.label} type="button" onClick={() => send(c.send!)} className="btn-quiet min-h-11 bg-paper-raised text-sm">
+                            {c.label}
+                          </button>
+                        ),
+                      )}
+                    </div>
+                  )}
+                </>
               )}
+              {t.kind === "ask" && (
+                <div className="flex w-full flex-col gap-3 rounded-3xl bg-alarm-soft p-5">
+                  <p className="text-lg font-medium">{t.text}</p>
+                  {t.state !== "done" && (
+                    <div className="flex flex-wrap gap-2">
+                      <button type="button" onClick={() => answer(t, true)} disabled={t.state === "saving"} aria-busy={t.state === "saving"} className="btn w-auto bg-[var(--alarm)] px-6">
+                        {t.state === "saving" ? "Checking…" : "Yes, it’s happening"}
+                      </button>
+                      <button type="button" onClick={() => answer(t, false)} disabled={t.state === "saving"} className="btn-quiet bg-paper-raised">
+                        No, not now
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+              {t.kind === "crisis" && (
+                <div className="w-full">
+                  <ResultView result={{ level: "urgent", reasons: [], crisis: true, noteUnread: false }} contacts={contacts} />
+                </div>
+              )}
+              {t.kind === "result" && (
+                <div className="w-full">
+                  <ResultView result={t.result} contacts={contacts} />
+                </div>
+              )}
+              {t.kind === "agent" &&
+                answerTo(t).flatMap((m) =>
+                  m.parts.map((part, i) =>
+                    part.type === "text" && part.text?.trim() ? (
+                      <p key={`${m.id}-${part.id ?? i}`} className={`${bubble} border border-line bg-paper-raised`}>
+                        {part.text}
+                      </p>
+                    ) : part.type === "dynamic-tool" ? (
+                      <div key={`${m.id}-${part.toolCallId ?? i}`} className="w-full">
+                        <ToolResult part={part} contacts={contacts} />
+                      </div>
+                    ) : null,
+                  ),
+                )}
             </motion.div>
           ))}
         </AnimatePresence>
@@ -195,15 +270,6 @@ export function Companion({ name, contacts = [] }: { name: string; contacts?: Co
         {agent.error && <p role="alert" className="error">Something went wrong. Please try again, or use the check-in list.</p>}
         <div ref={end} />
       </div>
-
-      {flagged.length > 0 && (
-        <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-3xl bg-alarm-soft p-4">
-          <p className="font-medium">Is this happening now? {flagged.join(", ")}.</p>
-          <Link href="/check-in" className="btn w-auto bg-alarm px-6 text-sm">
-            Check the warning signs
-          </Link>
-        </div>
-      )}
 
       <form
         className="sticky bottom-[6.5rem] flex items-end gap-2 rounded-[28px] border border-line bg-paper-raised p-2 shadow-[0_16px_40px_-24px_rgba(31,26,46,0.4)] md:bottom-6"

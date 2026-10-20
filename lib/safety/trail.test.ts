@@ -61,3 +61,9 @@ test("a warning says which call it showed: 911 for breathing, her doctor for a h
   assert.equal(from({ signs: ["headache"] }).find((s) => s.title.startsWith("Which call"))!.title, "Which call: her doctor, now");
   assert.equal(from({ signs: [] }).some((s) => s.title.startsWith("Which call")), false);
 });
+
+test("a check-in from Talk's instant path says the word scan found the signs and she confirmed them, no model", () => {
+  const first = from({ signs: ["headache"] }, { source: "words" })[0];
+  assert.match(first.detail, /word scan found the warning signs/);
+  assert.match(first.detail, /no AI model/);
+});

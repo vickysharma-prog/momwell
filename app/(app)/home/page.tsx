@@ -1,14 +1,15 @@
 import Link from "next/link";
 import { Greeting } from "@/components/Greeting";
+import { Showcase } from "@/components/Showcase";
 import { Guide } from "@/components/Guide";
 import { AlertList, type Alert } from "@/components/AlertList";
 import { AppPage } from "@/components/AppPage";
 import { CareHome } from "@/components/care/CareHome";
 import type { Scope } from "@/lib/people/access";
-import { askLine, type AskKind } from "@/lib/help/asks";
+import { ASK_KINDS, askLine, type AskKind } from "@/lib/help/asks";
 import { requireMe } from "@/lib/people/me";
 import { moodDue } from "@/lib/safety/mood";
-import { stageFrom, weeksPregnant } from "@/lib/safety/stage";
+import { babyAge, stageFrom, weeksPregnant } from "@/lib/safety/stage";
 
 type Linked = { mother_id: string; person_id: string; kind: string; relation: string; partner: boolean; sees: Scope[]; other: { name: string } };
 type HelpAsk = { id: string; kind: AskKind; needed_on: string; taken_by: string | null; mom: { name: string } | null; taker: { name: string } | null };
@@ -82,6 +83,21 @@ export default async function Today() {
         </p>
       </header>
       {mine ? <Greeting name={me.name} /> : <Guide line="guide_partner" />}
+      {mine && (
+        <Showcase
+          db={db}
+          facts={{
+            motherId: me.id,
+            helpLine: help.length
+              ? `${help.length} ${help.length === 1 ? "ask" : "asks"} today${((t) => (t ? ` · ${t.taker?.name ?? "someone"} has ${ASK_KINDS[t.kind].short.toLowerCase()}` : ""))(help.find((a) => a.taken_by))}`
+              : "Ask for a meal, a ride or the night feeds",
+            moodDue: moodDue(lastMood?.created_at ?? null, today),
+            lastMood: lastMood ? day(lastMood.created_at) : null,
+            baby: { born: stage.kind === "after_birth", age: stage.kind === "after_birth" ? babyAge(stage.days) : null },
+            careTeam: people.find((p) => p.kind === "care_team")?.other.name ?? null,
+          }}
+        />
+      )}
 
       {mine ? (
         <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
@@ -95,25 +111,6 @@ export default async function Today() {
                 {doneToday ? "Check in again" : "Check in today"}
               </Link>
             </section>
-
-            {stage.kind === "after_birth" && (
-              <Link href="/baby" className="card flex items-center justify-between gap-4 transition-colors hover:border-brand">
-                <span className="flex flex-col gap-1">
-                  <span className="text-xl font-semibold">Check on your baby</span>
-                  <span className="text-ink-soft">The warning signs for your baby’s age, and a temperature if you took one.</span>
-                </span>
-                <span aria-hidden="true" className="text-2xl text-brand">→</span>
-              </Link>
-            )}
-            {moodDue(lastMood?.created_at ?? null, today) && (
-              <Link href="/mood" className="card flex items-center justify-between gap-4 transition-colors hover:border-brand">
-                <span className="flex flex-col gap-1">
-                  <span className="text-xl font-semibold">How have you been feeling?</span>
-                  <span className="text-ink-soft">Your mood check, every two weeks. Two minutes.</span>
-                </span>
-                <span aria-hidden="true" className="text-2xl text-brand">→</span>
-              </Link>
-            )}
 
             <section className="flex flex-col gap-3" aria-label="Recent check-ins">
               <h2 className="text-2xl">Recent check-ins</h2>

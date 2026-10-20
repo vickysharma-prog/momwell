@@ -1,0 +1,20 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import { recordCheckIn, type Recorded } from "@/lib/checkin/record";
+import { requireMe } from "@/lib/people/me";
+import type { Reading } from "@/lib/safety/engine";
+import { SIGN_IDS, type SignId } from "@/lib/safety/signs";
+
+// She confirmed what the word scan found: the same save as every check-in, so the rules, alerts, the 911 tier and
+// "How this was decided" all apply. Her words are not stored as a note: she confirmed each sign instead.
+export async function confirmTalk(signs: SignId[], reading: Reading): Promise<Recorded | { error: string }> {
+  const { me } = await requireMe();
+  if (me.role !== "mother") return { error: "Check-ins are for moms." };
+  if (!signs.every((s) => SIGN_IDS.includes(s))) return { error: "Something didn't come through. Please use the check-in list." };
+  const bp = reading.bp && Number.isInteger(reading.bp.systolic) && Number.isInteger(reading.bp.diastolic) ? reading.bp : undefined;
+  const temp = reading.temp && Number.isFinite(reading.temp.value) && (reading.temp.unit === "F" || reading.temp.unit === "C") ? reading.temp : undefined;
+  const saved = await recordCheckIn(me.id, { signs, bp, temp }, "words");
+  revalidatePath("/", "layout");
+  return saved;
+}

@@ -6,9 +6,7 @@ import { CheckInForm } from "@/components/CheckInForm";
 import { requireMe } from "@/lib/people/me";
 import { babySignsFor } from "@/lib/safety/baby";
 import { SOURCES } from "@/lib/safety/sources";
-import { stageFrom } from "@/lib/safety/stage";
-
-const age = (days: number) => (days < 14 ? `${days} days old` : days < 90 ? `${Math.floor(days / 7)} weeks old` : `${Math.floor(days / 30.4)} months old`);
+import { babyAge, stageFrom } from "@/lib/safety/stage";
 
 // Her baby's check-in through the first year: the warning signs for the baby's age, decided by the baby rules.
 export default async function Baby() {
@@ -30,7 +28,7 @@ export default async function Baby() {
     <AppPage>
       <header className="flex flex-col gap-1">
         <h1 className="text-4xl sm:text-5xl">Your baby</h1>
-        <p className="text-lg text-ink-soft">{age(stage.days)}. Tap anything that’s true right now.</p>
+        <p className="text-lg text-ink-soft">{babyAge(stage.days)}. Tap anything that’s true right now.</p>
       </header>
       <Guide line="guide_baby" />
       <CheckInForm baby signs={babySignsFor(stage.days).map(({ id, label }) => ({ id, label }))} />

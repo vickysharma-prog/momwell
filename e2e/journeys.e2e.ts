@@ -138,12 +138,25 @@ test("her doctor sees a positive mood check in the queue and on her page", async
   await shows(doc, "PHQ-9: 11 of 27, moderate");
 });
 
-test("she tells Momwell in her own words, and the rules answer", async () => {
+test("she tells Momwell in her own words: it answers at once, asks before recording, and the rules decide", async () => {
   await go(her, "/talk");
   await her.waitForSelector("textarea", { timeout: 60_000 });
-  await her.type("textarea", "I've had a pounding headache all day and my blood pressure was 150/96");
-  await click(her, "button[aria-label=Send]");
-  await shows(her, /Call your doctor now|Call 911 now/, 120_000);
+  const say = async (words: string) => {
+    await her.type("textarea", words);
+    await click(her, "button[aria-label=Send]");
+  };
+  // How she feels: a kind answer and a next step, at once, with no model.
+  await say("I feel anxious and alone today");
+  await shows(her, "You’re not alone in this", 5_000);
+  // A warning sign: asked about at once, and nothing recorded until she says yes.
+  const before = (await admin.from("checkins").select("id").eq("mother_id", mom.id)).data!.length;
+  await say("I've had a pounding headache all day and my blood pressure was 150/96");
+  await shows(her, "It sounds like a headache that won't go away and a blood pressure of 150/96. Is this happening now?", 5_000);
+  assert.equal((await admin.from("checkins").select("id").eq("mother_id", mom.id)).data!.length, before);
+  await her.$$eval("main button", (bs) => (bs.find((b) => b.textContent === "Yes, it’s happening") as HTMLButtonElement).click());
+  await shows(her, "Call your doctor now.", 30_000);
+  const { data } = await admin.from("checkins").select("source, signs, systolic").eq("mother_id", mom.id).order("created_at", { ascending: false }).limit(1).single();
+  assert.deepEqual(data, { source: "words", signs: ["headache"], systolic: 150 });
 });
 
 test("the landing page leads to the demo", async () => {

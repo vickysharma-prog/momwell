@@ -3,7 +3,7 @@
 import type { Level, Reason } from "./engine.ts";
 import { needs911, TIER_SOURCE } from "./tier.ts";
 
-export type CheckInSource = "tap" | "talk" | "mood";
+export type CheckInSource = "tap" | "talk" | "mood" | "words";
 
 export type TrailInput = {
   source: CheckInSource;
@@ -22,6 +22,8 @@ export function trail(t: TrailInput): Step[] {
   const steps: Step[] = [
     t.subject === "baby"
       ? { title: "About her baby", detail: "She tapped what was true from the warning signs for babies (AAP and Children’s Hospital Colorado) and added a temperature if she took one." }
+      : t.source === "words"
+      ? { title: "Her words", detail: "She told Momwell in her own words. A plain word scan found the warning signs in them, she confirmed each one, and no AI model was involved." }
       : t.source === "talk"
       ? { title: "Her words", detail: "She told Momwell in her own words. The companion only named the warning signs it heard, and may add a sign, never remove one." }
       : t.source === "mood"

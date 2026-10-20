@@ -27,6 +27,25 @@ export type SignId = Sign["id"];
 export const SIGN_IDS = SIGNS.map((s) => s.id) as SignId[];
 export const SIGNS_SOURCE = SOURCES.cdcHearHer;
 
+/** Each sign as she'd say it in a sentence: "I am having a headache that won't go away." */
+export const SIGN_PHRASE: Record<SignId, string> = {
+  headache: "a headache that won't go away",
+  dizziness: "dizziness or fainting",
+  vision: "changes in my vision",
+  fever: "a fever",
+  swelling: "extreme swelling of my hands or face",
+  harm_thoughts: "thoughts of harming myself or my baby",
+  breathing: "trouble breathing",
+  chest_heart: "chest pain or a fast-beating heart",
+  vomiting: "severe nausea and throwing up",
+  belly_pain: "severe belly pain that doesn't go away",
+  baby_movement: "my baby moving less than usual",
+  bleeding_pregnant: "vaginal bleeding or fluid leaking",
+  bleeding_after: "heavy bleeding or discharge",
+  leg_arm: "a swollen, red or painful leg or arm",
+  tiredness: "overwhelming tiredness",
+};
+
 // Where she is: pregnant, some days after giving birth, or not told us yet.
 export type Stage = { kind: "pregnant" } | { kind: "after_birth"; days: number } | { kind: "unknown" };
 
