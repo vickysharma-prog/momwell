@@ -1,28 +1,79 @@
 # Momwell
 
-**From first heartbeat to first birthday, Momwell keeps watch.**
+**From first heartbeat to first birthday, Momwell keeps watch over her, her baby and the people who love them.**
 
-Momwell is a care companion for pregnancy and the year after birth. Every day it checks the CDC's urgent maternal
-warning signs with her, tells her exactly who to call and what to say, and brings her partner, family and care team
-in at the moment they are needed. It knows what she loves through Qloo, so it brings her something made for her every
-day: a gentle show, food that fits her diet with the FDA's advice for pregnancy, calm music for the hospital bag. That
-is why she keeps coming back, and a daily check-in is how a warning sign gets caught in time.
+Momwell is an AI care companion for pregnancy and the year after birth. Every day it checks the CDC's urgent maternal
+warning signs with her, tells her the one right call and the words to say, and brings her partner, family and care
+team in the moment they are needed. Through **Qloo's taste intelligence** it knows what she loves, so it gives her
+something made for her every day, and that is why she comes back. A daily check-in is how a warning sign gets caught
+in time.
 
-**Live:** https://momwell-one.vercel.app · **Try it:** open the demo and press *Open Momwell as Maya*. You get your own
-demo family (Maya at 27 weeks, her partner Sam, her OB-GYN Dr Lee) and can switch between them, or move Maya to six
-weeks after the birth, with one tap. All demo data is made up.
+Built for the **Qloo Agentic Hackathon 2026**. Live at **[momwell-one.vercel.app](https://momwell-one.vercel.app)**.
+
+---
+
+## For judges
+
+**Open [momwell-one.vercel.app/demo](https://momwell-one.vercel.app/demo)** and press *Open Momwell as Maya*. No
+sign-in, nothing to install. You get your own demo family: Maya, 27 weeks pregnant in Austin; Sam, her partner; and
+Dr Lee, her OB-GYN. A six-step story under the bar walks you through her night, and you can switch between the three
+of them, or move Maya to six weeks after the birth, with one tap. All demo data is made up, and on a phone Momwell
+installs as an app.
+
+**Five minutes in the code, in this order:**
+
+1. `lib/safety/`: the rules that decide every warning sign, each with its official source and a test.
+2. `lib/talk/router.ts`: how Talk listens to her words, rules first, before any model.
+3. `agent/`: the eve companion and its Qloo tools (`find_shows`, `find_food`, `find_music`).
+4. `lib/qloo/safewatch.ts` and `lib/qloo/food.ts`: Qloo's answers, checked by rules before she sees them.
+5. `lib/plan/make.ts`: the planner agent that chooses her evening from Qloo's picks.
+6. `db/migrations/`: row-level security, so she decides who sees what.
+
+---
+
+## One night, one family
+
+**2:15 am, 33 weeks.** Maya's head won't stop pounding. Sam is asleep, the doctor's office is closed, and the internet
+gives her ten different answers. Most nights a mother in her place decides it's probably nothing and goes back to bed.
+
+A headache that won't go away is one of the CDC's urgent maternal warning signs. Some nights it is nothing. Other
+nights it is the first sign of a blood pressure emergency, and the hours she waits are the hours that matter.
+
+**Maya tells Momwell.** She types it, taps it or says it. Momwell's rules, written from the CDC, AWHONN, ACOG and NIH,
+check her words and her blood pressure, 150/95. In seconds she sees one calm screen: *Call your doctor now.* Dr Lee and
+Sam are one tap away, with the words to say: *"I am 33 weeks pregnant, and I am having a headache that won't go away
+and a blood pressure of 150/95."* While she waits for a call back, Momwell breathes slowly with her.
+
+**Sam's phone lights up:** *Maya needs you to check on her now.* Sam sees that she needs them, not her private details.
+**In the morning, Dr Lee opens her queue** and Maya is at the top, with the reason why and her blood pressure charted
+against the 140/90 and 160/110 lines.
+
+**And on the quiet days,** which are most days, Momwell gives Maya a reason to open it: a gentle show like the ones she
+loves, with grief and pregnancy scares left out; dinner near her that fits her diet, with what to ask for while she's
+pregnant; calm music for the hospital bag; a plan for her evening that Sam can act on. All of it comes from her taste,
+through Qloo. **Coming back every day is what keeps her safe.**
+
+**Six weeks after the birth,** when the visits have thinned out and everyone is looking at the baby, Momwell is still
+there: checking her warning signs after birth for the whole first year, her mood every two weeks, and her baby's
+warning signs too.
 
 ## Why it matters
 
-- **4 in 5** pregnancy-related deaths in the US were judged preventable by the committees that review them
-  ([CDC, Maternal Mortality Review Committees, 2020](https://archive.cdc.gov/www_cdc_gov/maternal-mortality/php/data-research/index.html)).
+- **The United States has the highest rate of maternal deaths of any high-income nation**
+  ([Commonwealth Fund, 2024](https://www.commonwealthfund.org/publications/issue-briefs/2024/jun/insights-us-maternal-mortality-crisis-international-comparison)).
+  **649 women** died of maternal causes in 2024, nearly two every day ([NCHS](https://www.cdc.gov/nchs/data/hestat/hestat113.htm)).
+- **More than 4 in 5** pregnancy-related deaths (84%) were judged preventable by the committees that review them, and
+  **nearly half (47%)** happened between a week and a year after birth
+  ([CDC, Maternal Mortality Review Committees](https://archive.cdc.gov/www_cdc_gov/maternal-mortality/php/data-research/index.html)).
 - **1 in 4** of those deaths had a mental health condition among the circumstances that contributed
-  ([CDC, 2020](https://archive.cdc.gov/www_cdc_gov/maternal-mortality/php/report/index.html)).
-- Black mothers in the US die at about **3 times** the rate of White mothers
-  ([NCHS, 2024](https://www.cdc.gov/nchs/data/hestat/hestat113.htm)).
+  ([CDC](https://archive.cdc.gov/www_cdc_gov/maternal-mortality/php/report/index.html)), and about **1 in 8** new
+  mothers report symptoms of postpartum depression ([CDC, MMWR 2020](https://www.cdc.gov/mmwr/volumes/69/wr/mm6919a2.htm)).
+- Black mothers die at about **3 times** the rate of White mothers (44.8 vs 14.2 per 100,000 in 2024,
+  [NCHS](https://www.cdc.gov/nchs/data/hestat/hestat113.htm)).
 
-Most of these deaths follow a warning sign that nobody acted on in time. Momwell is built so that the sign is noticed,
-the right person is called, and the people around her know.
+The gap is the hours between a warning sign and a phone call: she isn't sure which signs matter, she doesn't know
+whether to call 911 or her doctor, the people who love her don't know tonight is the night, and by then she has
+stopped opening the app. Momwell closes that gap.
 
 ## What it does
 
@@ -31,22 +82,21 @@ the right person is called, and the people around her know.
   The signs shown follow her stage: pregnancy, the six weeks after birth, or the rest of the first year.
 - **The right call, not always 911.** AWHONN's POST-BIRTH guidance says which signs mean calling 911 (chest pain,
   trouble breathing, thoughts of hurting yourself) and which mean calling her doctor now; NIH sets 160/110 as the
-  emergency line for blood pressure. Her doctor and partner are one tap away, with the words to say ("I am 27 weeks
-  pregnant, and I am having…"), CDC's steps for getting care, and breathing along with her while she waits.
+  emergency line for blood pressure. Her doctor and partner are one tap away, with the words to say, CDC's steps for
+  getting care, and breathing along with her while she waits.
 - **Talk to Momwell** in her own words, typed or spoken. Rules answer at once: a warning sign is asked about before
-  anything is recorded, thoughts of harm bring 988 and the maternal mental health hotline straight away, and how she
-  feels gets a kind answer with a next step.
+  anything is recorded, thoughts of harm bring 988 and the National Maternal Mental Health Hotline straight away, and
+  how she feels gets a kind answer, in Momwell's own recorded voice, with a next step.
 - **A mood check every two weeks** with the PHQ-2 and, when it points that way, the PHQ-9 (ACOG's guideline). She sees
   what to do, never a label.
 - **Her baby's check-in** for the first year, from the AAP and Children's Hospital Colorado: 100.4°F under three months,
   blue lips, no wet diaper in eight hours, and more.
 - **For you, through Qloo:** Safe Watch (shows like the ones she loves, with loss, grief and pregnancy scares left
   out), places to eat near her that fit her diet with what to ask for, and a calm birth playlist.
-- **Today's plan:** Momwell's planner asks Qloo for shows, places to eat and music from her taste, chooses one
+- **Today's plan:** Momwell's planner asks Qloo for a show, a place to eat and music from her taste, chooses one
   evening and writes a note to her and one to her family (bring dinner from the place it chose). Rules keep only what
-  Qloo returned and drop any note about her health; when the model can't answer, the rules put it together from
-  Qloo's first picks and say so. Above it, the rules decide what comes first today: an open warning sign, her
-  check-in, or her mood check. Every step is one tap away under *How Momwell made this*.
+  Qloo returned and drop any note about her health. Above it, the rules decide what comes first today: an open warning
+  sign, her check-in, or her mood check. Every step is one tap away under *How Momwell made this*.
 - **Help from her people:** she asks for a meal, the night feeds, groceries or a ride; they take it with one tap, and
   a dinner ask comes with places she would love.
 
@@ -58,6 +108,20 @@ blood pressure against the 140/90 and 160/110 lines, her mood checks, and a visi
 
 **She decides who sees what.** Every person she links sees only the scopes she grants (alerts, check-ins, mood, baby,
 ways to help), enforced by row-level security in the database, not by the app.
+
+## Powered by Qloo: the reason she comes back
+
+Qloo is how Momwell knows her. Every pick she sees, and every plan her family acts on, starts from her taste in Qloo
+and carries a *Powered by Qloo* mark.
+
+| Qloo signal | What Momwell does with it | Where she sees it | Code |
+|---|---|---|---|
+| TV shows she loves, through Insights | Gentle shows like them | Safe Watch; Talk; Today's plan | `lib/qloo/safewatch.ts` |
+| Qloo's theme and keyword tags, in any namespace | Leaves out a mother's death, cancer, self-harm, pregnancy loss, divorce | Safe Watch | `lib/qloo/safewatch.ts` |
+| Places near her city, ranked by her taste, with diet tags | Real meals that fit her diet, each with the FDA's notes for pregnancy | For you; Help's dinner ideas; Today's plan | `lib/qloo/food.ts`, `lib/food/fda.ts` |
+| Place kinds (genre and category tags) | No bars, breweries, malls or cake shops; keeps the restaurant that also has a bar | Food | `lib/qloo/food.ts` |
+| Artists she loves | A calm birth playlist | For you; Talk; Today's plan | `lib/qloo/music.ts` |
+| All three, as agent tools | The planner chooses one evening for her and her family | Today's plan | `lib/plan/make.ts`, `agent/tools/` |
 
 ## How it is built
 

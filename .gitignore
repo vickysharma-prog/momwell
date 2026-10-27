@@ -32,3 +32,7 @@ __pycache__/
 .qloo-cache/
 fixtures/qloo/
 .output/
+
+# working notes, kept local
+/private/
+/state.md
