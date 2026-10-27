@@ -4,13 +4,18 @@
 import { notesFor, DIETS, type Diet, type FoodNote } from "../food/fda.ts";
 import { insights, placesToTry, tagId, type Entity } from "./api.ts";
 
-const NIGHTLIFE = /^(bar|sports_bar|wine_bar|cocktail_bar|pub|night_?club|nightlife|lounge|brewery|brewpub|beer_garden|hookah|hookah_bar|karaoke|dive_bar|gay_bar|music_venue|tavern|distillery|winery|taproom|saloon|speakeasy)$/;
+// A place built around drinking, even with a kitchen.
+const NIGHTLIFE = /^(sports_bar|wine_bar|cocktail_bar|piano_bar|pub|irish_pub|night_?club|nightlife|lounge|brewery|brewpub|beer_garden|beer_hall|hookah|hookah_bar|karaoke|dive_bar|gay_bar|music_venue|live_music_venue|dance_hall|tavern|distillery|winery|taproom|saloon|speakeasy)$/;
 // Somewhere that isn't a restaurant, even when Qloo also tags a café or a counter inside it.
 const NOT_FOOD =
-  /^(shopping|shopping_mall|department_store|.*clothing_store|shoe_store|gift_shop|candy_store|grocery_store|supermarket|convenience_store|gas_station|market|event_venue|banquet_hall|wedding_venue|amusement_park|amusement_center|playground|.*party_.*|party_planner|tourist_attraction|.*_lessons|.*bicycle.*|hotel|casino|stadium|arena|gym|fitness_center|movie_theater|bowling_alley|golf_course|.*club|university|college|school)$/;
-// Food, but not a meal on its own: what she'd bring home for dinner is a restaurant. A bar & grill counts only with a
-// real kitchen kind beside it (seafood, fine dining), not alone.
-const SNACK = /^(bar_grill|cafe|coffee_shop|coffee_store|espresso_bar|internet_cafe|art_cafe|tea_house|bubble_tea|juice_bar|dessert_shop|ice_cream_shop|frozen_yogurt_shop|donut_shop|bakery|patisserie|candy_store|chocolate_shop|caterer|banquet_hall)$/;
+  /^(shopping|shopping_mall|department_store|.*clothing_store|shoe_store|gift_shop|candy_store|grocery_store|supermarket|convenience_store|gas_station|banquet_hall|amusement_park|amusement_center|playground|.*party_.*|party_planner|.*_lessons|.*bicycle.*|hotel|casino|stadium|arena|gym|fitness_center|movie_theater|bowling_alley|golf_course|park|festival|.*club|university|college|school)$/;
+// A restaurant can also have a bar, host weddings or be a landmark (RA Sushi, El Arroyo). These count against a place
+// only when Qloo names no kitchen beside them.
+const ALSO = /^(bar|lounge_bar|event_venue|wedding_venue|tourist_attraction|market|cultural_landmark|historical_landmark|general_store)$/;
+// Food, but not a meal on its own: what she'd bring home for dinner is a restaurant. Matched on word parts, because Qloo
+// spells one kind several ways (cake_shop, wedding_bakery, bubble_tea_store). A bar & grill counts only with a real
+// kitchen kind beside it (seafood, fine dining), not alone.
+const SNACK = /(bar_grill|cafe|coffee|espresso|tea_house|tea_store|tea_room|bubble_tea|juice|dessert|ice_cream|yogurt|donut|doughnut|bakery|(^|_)cake|patisserie|pastry|candy|chocolate|caterer)/;
 const MEAL_CATEGORY = /(_restaurant|^restaurant|^steak_house|^diner|^deli|^bistro|^sandwich_shop|^buffet)$/;
 const MEAT_CENTERED = /(steak|seafood|bbq|barbecue|churrascaria|chicken_wings|wings|hot_dog|oyster|crab|fish_and_chips)/;
 const VEG = /(vegetarian|vegan)/;
@@ -28,7 +33,12 @@ function kindsOf(e: Entity) {
 export function isMealPlace(e: Entity) {
   const k = kindsOf(e);
   if (k.all.some((x) => NIGHTLIFE.test(x) || NOT_FOOD.test(x))) return false;
-  return k.restaurant.some((x) => !SNACK.test(x)) || k.category.some((x) => MEAL_CATEGORY.test(x) && !SNACK.test(x.replace(/_restaurant$/, "")));
+  const meals = [...k.restaurant, ...k.category.filter((x) => MEAL_CATEGORY.test(x))]
+    .map((x) => x.replace(/_restaurant$/, ""))
+    .filter((x) => !SNACK.test(x) && !ALSO.test(x));
+  if (meals.some((x) => x !== "restaurant")) return true;
+  // Only Qloo's plain "restaurant": enough on its own, not beside a bar, a café, a venue or a market.
+  return meals.length > 0 && !k.all.some((x) => ALSO.test(x) || SNACK.test(x));
 }
 
 /** Her diet, kept: for a vegetarian or vegan, no place built around meat or fish. */

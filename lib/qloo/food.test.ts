@@ -57,6 +57,54 @@ test("bars and pubs are left out, even with a kitchen", () => {
   assert.equal(isMealPlace(place("McCormick's", "bar_grill", "seafood", "category:place:fine_dining_restaurant")), true);
 });
 
+test("a restaurant that also has a bar or hosts events stays, when Qloo names its kitchen", () => {
+  for (const p of [
+    place("Aba Austin", "bar", "mediterranean", "genre:place:restaurant", "category:place:bar", "category:place:mediterranean_restaurant"),
+    place("Citizen Eatery", "vegetarian", "vegan", "bar", "gastropub", "category:place:bar", "category:place:vegetarian_restaurant"),
+    place("RA Sushi", "bar", "sushi", "japanese", "category:place:bar", "category:place:sushi_restaurant"),
+    place("Clark's Oyster Bar", "bar", "seafood", "oyster_bar", "category:place:bar", "category:place:seafood_restaurant"),
+    place("El Arroyo", "bar", "tex_mex", "genre:place:tourist_attraction", "category:place:event_venue", "category:place:tex_mex_restaurant"),
+    place("Kaskade", "polish", "genre:place:event_venue", "category:place:polish_restaurant"),
+    place("Jacoby's", "southern_restaurant_us", "genre:place:general_store", "category:place:american_restaurant"),
+    place("La Condesa", "mexican", "bar", "lounge_bar", "category:place:mexican_restaurant"),
+  ])
+    assert.equal(isMealPlace(p), true, p.name);
+});
+
+test("a bar, a venue or a landmark with only Qloo's plain restaurant tag isn't shown", () => {
+  for (const p of [
+    place("The Lucky Duck", "bar", "genre:place:restaurant", "category:place:restaurant", "category:place:bar"),
+    place("Lost & Found", "bar_grill", "genre:place:restaurant", "category:place:restaurant", "category:place:bar_grill"),
+    place("Seaside Lounge", "bar", "bar_grill", "category:place:bar"),
+    place("Tea Kettle Cafe", "tea_house", "cafe", "category:place:restaurant", "category:place:event_venue", "genre:place:tea_store"),
+    place("The Crown", "bar", "lounge_bar", "category:place:bar"),
+  ])
+    assert.equal(isMealPlace(p), false, p.name);
+  assert.equal(isMealPlace(place("Austin Taco Project", "genre:place:restaurant", "category:place:restaurant")), true);
+});
+
+test("cake shops, bubble tea, juice and coffee roasters aren't dinner, in any of Qloo's spellings", () => {
+  for (const p of [
+    place("Lady Quack's Bakery and Cake Shop", "bakery", "coffee_shop", "cake_shop", "wedding_bakery", "category:place:cake_shop"),
+    place("The Berry Bar", "frozen_yogurt_shop", "bubble_tea_store", "category:place:bubble_tea_store"),
+    place("A juice shop", "juice_shop", "category:place:juice_shop"),
+    place("A coffee roaster", "coffee_roastery", "genre:place:restaurant", "category:place:coffee_roastery"),
+  ])
+    assert.equal(isMealPlace(p), false, p.name);
+});
+
+test("wine bars, beer halls, cocktail bars and clubs are left out even with a kitchen", () => {
+  for (const p of [
+    place("June's", "wine_bar", "american", "category:place:american_restaurant"),
+    place("A beer hall", "beer_hall", "german", "category:place:german_restaurant"),
+    place("Oasis", "bar", "seafood", "category:place:cocktail_bar", "category:place:american_restaurant"),
+    place("Trinity Place", "irish_pub", "american", "category:place:american_restaurant"),
+    place("Belle Station", "brunch", "genre:place:night_club", "category:place:brunch_restaurant"),
+    place("A movie theater", "american", "genre:place:movie_theater", "category:place:american_restaurant"),
+  ])
+    assert.equal(isMealPlace(p), false, p.name);
+});
+
 test("a place with no restaurant kind at all isn't shown", () => {
   assert.equal(isMealPlace(place("Mystery", "genre:place:restaurant")), false);
   assert.equal(isMealPlace({ entity_id: "x", name: "x" }), false);
