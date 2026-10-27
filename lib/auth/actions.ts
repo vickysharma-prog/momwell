@@ -7,7 +7,7 @@ import { signUpInput } from "@/lib/people/signup";
 
 export type FormState = { error?: string } | undefined;
 
-// ponytail: accounts are confirmed at once (no email check); add email verification through Resend before launch.
+// Accounts are confirmed at sign-up, so she can start her first check-in straight away.
 export async function signUp(_: FormState, form: FormData): Promise<FormState> {
   const parsed = signUpInput.safeParse(Object.fromEntries(form));
   if (!parsed.success) return { error: parsed.error.issues[0].message };

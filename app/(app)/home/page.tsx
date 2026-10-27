@@ -57,7 +57,7 @@ export default async function Today() {
   const plans = (planRows ?? []) as PlanRow[];
   const planOf = (id: string) => plans.find((x) => x.mother_id === id) ?? null;
   // A plan not made yet is made after this page is sent, by the planner (or the rules), and shows on the next visit.
-  // ponytail: two quick visits can both start one; the second just overwrites the first.
+  // Two quick visits can both start one; the second just overwrites the first.
   const toMake = (mine ? [me.id] : ((links ?? []) as Linked[]).filter((l) => l.sees.includes("tasks")).map((l) => l.mother_id)).filter((id) => !planOf(id));
   if (toMake.length) after(() => Promise.all(toMake.map((id) => makePlan(supabaseAdmin(), id, todayDate).catch(() => null))));
   const help = (asks ?? []) as unknown as HelpAsk[];

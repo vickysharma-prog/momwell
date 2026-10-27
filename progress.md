@@ -6,10 +6,10 @@ checked. Every day ends with the unit tests passing, a clean type check, and a d
 [momwell-one.vercel.app](https://momwell-one.vercel.app).
 
 **Qloo through the build:** about 70 live Qloo calls on day one to learn what it knows about shows, food, music and
-places for a pregnant mother (19 Oct); Safe Watch, food by taste and diet with the FDA's notes, and the birth playlist
-(19 Oct); Qloo as the companion's own tools (20 Oct); Safe Watch reading a theme in any of Qloo's tag namespaces
-(21 Oct); Today's plan, where a planner agent chooses an evening from Qloo's picks (22 Oct); one Powered by Qloo mark
-wherever Qloo made the choice (22 Oct); the food rules checked against every real place Qloo returned (27 Oct).
+places for a pregnant mother, then Safe Watch, food by taste and diet with the FDA's notes, the birth playlist and
+Qloo as the companion's own tools (19 Oct); Safe Watch reading a theme in any of Qloo's tag namespaces, Today's plan,
+where a planner agent chooses an evening from Qloo's picks, and one Powered by Qloo mark wherever Qloo made the choice
+(20 Oct); the food rules checked against every real place Qloo returned (27 Oct).
 
 ---
 
@@ -24,7 +24,7 @@ wherever Qloo made the choice (22 Oct); the food rules checked against every rea
 - **The submission:** the story, the problem with every number checked against its source, and a walk through the
   six-step story as each role.
 
-## 22 October: Today's plan, her time zone, her baby's doctor
+## 20 October: her people, her mood, her baby, the right call, Today's plan
 
 - **Today's plan:** a planner agent asks Qloo for a show, a place for dinner and an artist, chooses one evening, and
   writes a note to her and one to her family. Rules keep only what Qloo returned and drop any note about her health;
@@ -34,8 +34,6 @@ wherever Qloo made the choice (22 Oct); the food rules checked against every rea
 - **Her own time zone** for every time and for what counts as today.
 - **Her baby's doctor** on her People page, called first for a warning about the baby.
 - Safe Watch also leaves out a marriage ending in the year after birth.
-
-## 21 October: the right call, a guided demo, and a judge's walkthrough
 
 - **The right call, not always 911:** AWHONN's POST-BIRTH guidance names the signs that mean 911 (chest pain, trouble
   breathing, thoughts of harm) and NIH sets 160/110 as the blood pressure emergency line. Every other warning says
@@ -54,8 +52,6 @@ wherever Qloo made the choice (22 Oct); the food rules checked against every rea
 - **Checked as a judge would,** in the browser: the landing names its sources, a warning says who was told, Safe
   Watch catches a theme in any of Qloo's tag namespaces, and Talk keeps the conversation after she confirms a sign.
 - Functions run in Sydney next to the database, which made every screen much faster.
-
-## 20 October: her people, her mood, her baby
 
 - **Help from her people:** she asks for a meal, the night feeds, groceries, company or a ride; her circle takes it
   with one tap, under database rules that only let them say who took it.

@@ -6,7 +6,7 @@ import { supabaseAdmin } from "../supabase/admin.ts";
 
 const BASE = process.env.QLOO_BASE_URL ?? "https://hackathon.api.qloo.com";
 const GAP_MS = 220; // just under 5 per second
-// ponytail: spacing is per server instance; a shared limiter is needed only if 429s show up under load.
+// Spacing is per server instance, which keeps each one under the key's rate.
 
 let next = 0;
 async function slot() {

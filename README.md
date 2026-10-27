@@ -33,7 +33,7 @@ installs as an app.
 
 ## One night, one family
 
-**2:15 am, 33 weeks.** Maya's head won't stop pounding. Sam is asleep, the doctor's office is closed, and the internet
+**2:15 am, 27 weeks.** Maya's head won't stop pounding. Sam is asleep, the doctor's office is closed, and the internet
 gives her ten different answers. Most nights a mother in her place decides it's probably nothing and goes back to bed.
 
 A headache that won't go away is one of the CDC's urgent maternal warning signs. Some nights it is nothing. Other
@@ -41,11 +41,11 @@ nights it is the first sign of a blood pressure emergency, and the hours she wai
 
 **Maya tells Momwell.** She types it, taps it or says it. Momwell's rules, written from the CDC, AWHONN, ACOG and NIH,
 check her words and her blood pressure, 150/95. In seconds she sees one calm screen: *Call your doctor now.* Dr Lee and
-Sam are one tap away, with the words to say: *"I am 33 weeks pregnant, and I am having a headache that won't go away
+Sam are one tap away, with the words to say: *"I am 27 weeks pregnant, and I am having a headache that won't go away
 and a blood pressure of 150/95."* While she waits for a call back, Momwell breathes slowly with her.
 
 **Sam's phone lights up:** *Maya needs you to check on her now.* Sam sees that she needs them, not her private details.
-**In the morning, Dr Lee opens her queue** and Maya is at the top, with the reason why and her blood pressure charted
+**In the morning, Dr Lee opens the queue** and Maya is at the top, with the reason why and her blood pressure charted
 against the 140/90 and 160/110 lines.
 
 **And on the quiet days,** which are most days, Momwell gives Maya a reason to open it: a gentle show like the ones she
