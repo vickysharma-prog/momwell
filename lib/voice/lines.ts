@@ -34,9 +34,19 @@ export const LINES = {
   greet_morning: "Good morning. I'm Momwell. How are you feeling today?",
   greet_afternoon: "Good afternoon. I'm Momwell. How are you feeling today?",
   greet_evening: "Good evening. I'm Momwell. How are you feeling today?",
-  // Talk's instant answers (lib/talk/replies.ts), chosen by rules. The rest are recorded as quota allows.
+  // Talk's instant answers (lib/talk/replies.ts), chosen by rules, word for word what Talk shows.
   talk_low: "I'm sorry it feels heavy right now. You're not alone in this. Would you like to do your mood check, or ask your people for help today?",
   talk_sleep: "Nights can be so hard right now. Try to rest your body, even if sleep won't come. I can find you something calm to watch or listen to.",
+  talk_good: "I'm so glad. Your thirty-second check-in helps keep it that way.",
+  talk_greet: "Hi, I'm here. How are you feeling today?",
+  talk_thanks: "Anytime. I'm here whenever you need me.",
+  talk_help: "Your people want to help. Tell them what would make today easier, and they can take it with one tap.",
+  talk_medical: "I can't advise on medicines. Your doctor or pharmacist is the one to ask, and they're glad to help.",
+  talk_not_now: "Okay. If anything changes, tell me, or tap Check in any time.",
+  talk_menu: "I'm here for how you feel and the little things that make the day lighter. What would help right now?",
+  talk_shows: "Here are a few gentle ones, picked through Qloo from what you love.",
+  talk_food: "Here are places near you that fit your diet, picked through Qloo, with what to ask for while you're pregnant.",
+  talk_music: "Here are calm artists for your birth playlist, picked through Qloo from the music you love.",
 } as const;
 export type LineId = keyof typeof LINES;
 

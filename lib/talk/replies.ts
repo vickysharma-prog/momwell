@@ -4,7 +4,7 @@ import type { LineId } from "../voice/lines.ts";
 import type { Feeling, Want } from "./router.ts";
 
 export type Chip = { label: string; href?: string; send?: string; tone?: "alarm" };
-// line: its recording in Momwell's voice, once there is one.
+// line: its recording in Momwell's voice.
 export type Reply = { text: string; chips: Chip[]; line?: LineId };
 
 export const MATERNAL_HOTLINE = "tel:18338526262";
@@ -22,24 +22,28 @@ export const REPLIES: Record<Feeling, Reply> = {
   },
   good: {
     text: "I’m so glad. Your thirty-second check-in helps keep it that way.",
+    line: "talk_good",
     chips: [{ label: "Check in", href: "/check-in" }],
   },
   greet: {
     text: "Hi, I’m here. How are you feeling today?",
+    line: "talk_greet",
     chips: [{ label: "I’m doing well", send: "I'm good today" }, { label: "Not so great", send: "I feel down today" }, { label: "Something feels wrong", href: "/check-in", tone: "alarm" }],
   },
-  thanks: { text: "Anytime. I’m here whenever you need me.", chips: [] },
+  thanks: { text: "Anytime. I’m here whenever you need me.", chips: [], line: "talk_thanks" },
   help: {
     text: "Your people want to help. Tell them what would make today easier, and they can take it with one tap.",
+    line: "talk_help",
     chips: [{ label: "Ask my people", href: "/help" }],
   },
   medical: {
     text: "I can’t advise on medicines. Your doctor or pharmacist is the one to ask, and they’re glad to help.",
+    line: "talk_medical",
     chips: [{ label: "Check the warning signs", href: "/check-in" }],
   },
 };
 
-export const NOT_NOW: Reply = { text: "Okay. If anything changes, tell me, or tap Check in any time.", chips: [{ label: "Check in", href: "/check-in" }] };
+export const NOT_NOW: Reply = { text: "Okay. If anything changes, tell me, or tap Check in any time.", chips: [{ label: "Check in", href: "/check-in" }], line: "talk_not_now" };
 
 /** "It sounds like a headache that won't go away. Is this happening now?" */
 export function askAbout(labels: string[]) {
@@ -50,6 +54,7 @@ export function askAbout(labels: string[]) {
 /** Anything the rules don't recognise: what Momwell can do, one tap each. */
 export const MENU: Reply = {
   text: "I’m here for how you feel and the little things that make the day lighter. What would help right now?",
+  line: "talk_menu",
   chips: [
     { label: "Check my warning signs", href: "/check-in" },
     { label: "My mood check", href: "/mood" },
@@ -61,8 +66,8 @@ export const MENU: Reply = {
 };
 
 /** What Momwell says as it brings her Qloo picks. */
-export const PICKS_SAY: Record<Want, string> = {
-  shows: "Here are a few gentle ones, picked through Qloo from what you love.",
-  food: "Here are places near you that fit your diet, picked through Qloo, with what to ask for while you’re pregnant.",
-  music: "Here are calm artists for your birth playlist, picked through Qloo from the music you love.",
+export const PICKS_SAY: Record<Want, Reply> = {
+  shows: { text: "Here are a few gentle ones, picked through Qloo from what you love.", chips: [], line: "talk_shows" },
+  food: { text: "Here are places near you that fit your diet, picked through Qloo, with what to ask for while you’re pregnant.", chips: [], line: "talk_food" },
+  music: { text: "Here are calm artists for your birth playlist, picked through Qloo from the music you love.", chips: [], line: "talk_music" },
 };

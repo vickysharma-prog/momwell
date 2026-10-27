@@ -8,7 +8,7 @@ import { LINES, VOICE, type LineId } from "../lib/voice/lines.ts";
 // give the same voice name a different sound). TTS_MODEL overrides.
 const MODELS = [process.env.TTS_MODEL ?? "gemini-3.8-flash-tts"];
 // Names spelled the way they sound, so the voice says them right: Momwell, and Qloo (said "clue").
-const spoken = (text: string) => text.replace(/Momwell/g, "Mom-well").replace(/Qloo/g, "Clue");
+const spoken = (text: string) => text.replace(/Momwell/g, "Mom Well").replace(/Qloo/g, "Clue");
 const ids = (process.argv.length > 2 ? process.argv.slice(2) : Object.keys(LINES)) as LineId[];
 const path = (name: string) => new URL(`../public/voice/${name}`, import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, "$1");
 

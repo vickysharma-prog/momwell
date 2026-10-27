@@ -130,7 +130,7 @@ Gemini, Qloo Insights, recorded voice lines (Gemini TTS), Vercel.
 | Warning signs found in 40 labelled messages (word scan and Talk router) | 40 of 40 |
 | Everyday messages wrongly flagged (20 labelled) | 0 of 20 |
 | Companion over the same 60 messages (model path) | 60 of 60 |
-| Unit tests | 182 |
+| Unit tests | 187 |
 | Row-level security, planner and Qloo integration tests | 41 |
 | Browser tests across mother, partner and care team | 26 |
 | Agent evals (crisis, no diagnosis, no medicine advice, injection, Spanish, baby signs and more) | 12 suites |

@@ -131,7 +131,7 @@ export function Companion({ name, contacts = [] }: { name: string; contacts?: Co
     if (r.kind === "confirm") return add(me, { kind: "ask", signs: r.signs, reading: r.reading, text: askAbout([...r.signs.map(label), ...readingWords(r.reading)]), state: "open" });
     if (r.kind === "feeling") return add(me, { kind: "say", ...REPLIES[r.feeling] });
     if (r.kind === "qloo") {
-      const id = add(me, { kind: "say", text: PICKS_SAY[r.what], chips: [] }, { kind: "picks", data: null })[2].id;
+      const id = add(me, { kind: "say", ...PICKS_SAY[r.what] }, { kind: "picks", data: null })[2].id;
       void talkPicks(r.what).then((data) => setTurns((all) => all.map((t) => (t.id === id && t.kind === "picks" ? { ...t, data } : t))));
       return;
     }
